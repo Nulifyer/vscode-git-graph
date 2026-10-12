@@ -1,4 +1,4 @@
-# Git Graph for Visual Studio Code
+# Git Graph Modern for Visual Studio Code
 
 This is [the GitHub fork](https://github.com/Nulifyer/vscode-git-graph), maintained by [nulifyer](https://github.com/Nulifyer), derived from [Michael Hutchison's Git Graph](https://github.com/mhutchie/vscode-git-graph). It uses extension ID `nulifyer.git-graph-modern` and targets stable VS Code 1.141.0 or newer. The original attribution and license remain.
 
@@ -173,7 +173,7 @@ Fork release notes are recorded in the bundled CHANGELOG.md. [Upstream release h
 
 Disable the original `mhutchie.git-graph` extension and the earlier local `nulifyer.git-graph` build before enabling `nulifyer.git-graph-modern`. They share Git Graph commands and settings.
 
-Install [Git Graph from the Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=nulifyer.git-graph-modern):
+Install [Git Graph Modern from the Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=nulifyer.git-graph-modern):
 
 ```bash
 code --install-extension nulifyer.git-graph-modern
@@ -185,7 +185,7 @@ To build and install from source:
 
 ```bash
 bun run package
-code --install-extension ./git-graph-modern-1.31.4.vsix --force
+code --install-extension ./git-graph-modern-1.31.5.vsix --force
 ```
 
 Fully quit VS Code and reopen it after replacing the extension. Upstream wiki links below document the inherited functionality. Use [the fork repository](https://github.com/Nulifyer/vscode-git-graph) and [its issue tracker](https://github.com/Nulifyer/vscode-git-graph/issues) for this build.

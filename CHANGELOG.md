@@ -1,6 +1,13 @@
 # Change Log
 
+## 1.31.5 - 2026-10-12
+
+- Use visible name Git Graph Modern because Marketplace also reserves the upstream display name Git Graph.
+- Keep nulifyer as author and publisher. Preserve existing Git Graph commands, settings, and behavior.
+
 ## 1.31.4 - 2026-10-12
+
+This version has a GitHub VSIX download, but its Marketplace publication failed because the display name was taken.
 
 - Use Marketplace identifier `nulifyer.git-graph-modern` because Marketplace rejected the original package name `git-graph`.
 - Keep the visible product name Git Graph and preserve its command IDs and settings.
