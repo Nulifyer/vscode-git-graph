@@ -5,7 +5,7 @@
 	color:var(--vscode-menu-foreground);
 	left:50%;
 	transform:translateX(-50%);
-	border:1px solid rgba(128,128,128,0.5);
+	border:1px solid var(--git-graph-border);
 	border-radius:5px;
 	text-align:center;
 	font-size:13px;
@@ -13,8 +13,8 @@
 	z-index:41;
 	box-shadow:0 0 30px 5px var(--vscode-widget-shadow);
 }
-body.vscode-high-contrast .dialog{
-	border-color:var(--vscode-menu-border, rgba(128,128,128,0.5));
+:is(body.vscode-high-contrast, body.vscode-high-contrast-light) .dialog{
+	border-color:var(--vscode-menu-border, var(--git-graph-border));
 }
 
 .dialogContent{
@@ -88,10 +88,10 @@ body.vscode-high-contrast .dialog{
 	padding:4px 6px;
 	box-sizing:border-box;
 	outline-style:none;
-	background-color:rgba(128,128,128,0.1);
-	border:1px solid rgba(128,128,128,0.5);
+	background-color:var(--vscode-input-background);
+	border:1px solid var(--vscode-input-border, var(--git-graph-border));
 	border-radius:4px;
-	color:var(--vscode-menu-foreground);
+	color:var(--vscode-input-foreground);
 	font-family:var(--vscode-font-family);
 	font-size:13px;
 	line-height:17px;
@@ -100,8 +100,7 @@ body.vscode-high-contrast .dialog{
 	border-color:var(--vscode-focusBorder);
 }
 .dialogContent > table.dialogForm input[type=text]::placeholder{
-	color:var(--vscode-menu-foreground);
-	opacity:0.4;
+	color:var(--vscode-input-placeholderForeground);
 }
 
 .dialog .roundedBtn{
@@ -127,17 +126,19 @@ body.vscode-high-contrast .dialog{
 }
 
 .dialog #dialogAction{
-	background-color:rgba(128,128,128,0.15);
-	border-color:rgba(128,128,128,0.8);
-	box-shadow:0 0 1px 1px rgba(128,128,128,0.2);
+	color:var(--vscode-button-foreground);
+	background-color:var(--vscode-button-background);
+	border-color:var(--git-graph-border);
+	box-shadow:0 0 1px 1px var(--git-graph-border);
 }
 
 .dialog #dialogAction:hover{
-	background-color:rgba(128,128,128,0.25);
+	background-color:var(--vscode-button-hoverBackground);
 }
 
 .dialog.noInput #dialogAction, .dialog.inputInvalid #dialogAction{
-	background-color:rgba(128,128,128,0.2);
+	color:var(--vscode-button-secondaryForeground);
+	background-color:var(--vscode-button-secondaryBackground);
 	opacity:0.5;
 }
 
@@ -208,8 +209,8 @@ body.vscode-high-contrast .dialog{
 	bottom:0;
 	padding:4px 22px 4px 6px;
 	box-sizing:border-box;
-	background-color:rgba(128,128,128,0.1);
-	border:1px solid rgba(128,128,128,0.5);
+	background-color:var(--vscode-input-background);
+	border:1px solid var(--vscode-input-border, var(--git-graph-border));
 	border-radius:4px;
 	outline-style:none;
 	color:var(--vscode-menu-foreground);
@@ -263,7 +264,7 @@ body.vscode-high-contrast .dialog{
 	width:100%;
 	padding:5px 6px;
 	max-height:61px;
-	background-color:rgba(128,128,128,0.05);
+	background-color:var(--vscode-list-hoverBackground, transparent);
 	overflow:hidden;
 	word-wrap:break-word;
 	-webkit-user-select:none;
@@ -272,13 +273,13 @@ body.vscode-high-contrast .dialog{
 }
 
 .customSelectOptions > .customSelectOption.selected{
-	background-color:rgba(128,128,128,0.2);
+	background-color:var(--vscode-button-secondaryBackground);
 }
 .customSelectOptions > .customSelectOption.focussed{
-	background-color:var(--vscode-menu-selectionBackground, rgba(128,128,128,0.05));
+	background-color:var(--vscode-menu-selectionBackground, var(--vscode-list-hoverBackground, transparent));
 	color:var(--vscode-menu-selectionForeground, var(--vscode-menu-foreground));
 }
-body.vscode-high-contrast .customSelectOptions > .customSelectOption.focussed{
+:is(body.vscode-high-contrast, body.vscode-high-contrast-light) .customSelectOptions > .customSelectOption.focussed{
 	outline:1px dotted var(--vscode-menu-selectionBorder, transparent);
 	outline-offset:-2px;
 }

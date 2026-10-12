@@ -2,10 +2,10 @@
 	"compilerOptions": {
 		"declaration": true,
 		"lib": [
-			"es6"
+			"ES2024"
 		],
-		"module": "commonjs",
-		"moduleResolution": "node",
+		"module": "Node16",
+		"moduleResolution": "Node16",
 		"outDir": "../out",
 		"noFallthroughCasesInSwitch": true,
 		"noImplicitAny": true,
@@ -14,11 +14,11 @@
 		"removeComments": true,
 		"sourceMap": true,
 		"strict": true,
-		"target": "es6",
+		"target": "ES2024",
 		"types": [
 			"node",
-			"vscode",
-			"./utils/@types/node"
-		]
+			"vscode"
+		],
+		"noEmitOnError": true
 	}
 }

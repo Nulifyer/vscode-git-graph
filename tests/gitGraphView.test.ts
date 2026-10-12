@@ -6,12 +6,12 @@ jest.mock('../src/extensionState');
 jest.mock('../src/logger');
 jest.mock('../src/repoManager');
 
-import * as path from 'path';
+import path = require('path');
 import { ConfigurationChangeEvent } from 'vscode';
 import { AvatarEvent, AvatarManager } from '../src/avatarManager';
 import { DataSource } from '../src/dataSource';
 import { ExtensionState } from '../src/extensionState';
-import { GitGraphView, standardiseCspSource } from '../src/gitGraphView';
+import { GitGraphView, serializeWebviewState, standardiseCspSource } from '../src/gitGraphView';
 import { Logger } from '../src/logger';
 import { RepoChangeEvent, RepoManager } from '../src/repoManager';
 import { CodeReview, CommitOrdering, GitCommitStash, GitConfigLocation, GitFileStatus, GitGraphViewGlobalState, GitGraphViewWorkspaceState, GitPushBranchMode, GitResetMode, MergeActionOn, PullRequestConfig, PullRequestProvider, RebaseActionOn, RequestMessage, ResponseMessage, TagType } from '../src/types';
@@ -486,6 +486,13 @@ describe('GitGraphView', () => {
 		afterEach(() => {
 			expect(spyOnRepoFileWatcherMute).toHaveBeenCalledWith();
 			expect(spyOnRepoFileWatcherUnmute).toHaveBeenCalledWith();
+		});
+
+		it('Restores watcher state when a request rejects', async () => {
+			const failure = new Error('storage failed');
+			jest.spyOn(extensionState, 'setGlobalViewState').mockRejectedValueOnce(failure);
+			await expect(GitGraphView.currentPanel!['respondToMessage']({ command: 'setGlobalViewState', state: { alwaysAcceptCheckoutCommit: false, issueLinkingConfig: null, pushTagSkipRemoteCheck: false } })).rejects.toBe(failure);
+			expect(spyOnRepoFileWatcherUnmute).toHaveBeenCalledTimes(1);
 		});
 
 		describe('addRemote', () => {
@@ -3627,7 +3634,9 @@ describe('GitGraphView', () => {
 			expect(mockedWebviewPanel.panel.webview.html).toContain('<meta http-equiv="Content-Security-Policy" content="default-src \'none\'; style-src vscode-webview-resource: \'unsafe-inline\'; script-src \'nonce-1a2b3c4d5e6f1a2b3c4d5e6f1a2b3c4d\'; img-src data:;">');
 			expect(mockedWebviewPanel.panel.webview.html).toContain('<link rel="stylesheet" type="text/css" href="vscode-webview-resource://file///path/to/extension/media/out.min.css">');
 			expect(mockedWebviewPanel.panel.webview.html).toContain('<title>Git Graph</title>');
-			expect(mockedWebviewPanel.panel.webview.html).toContain('<style>body{--git-graph-color0:#0085d9; --git-graph-color1:#d9008f; --git-graph-color2:#00d90a; --git-graph-color3:#d98500; --git-graph-color4:#a300d9; --git-graph-color5:#ff0000; --git-graph-color6:#00d9cc; --git-graph-color7:#e138e8; --git-graph-color8:#85d900; --git-graph-color9:#dc5b23; --git-graph-color10:#6f24d6; --git-graph-color11:#ffcc00; } [data-color=\"0\"]{--git-graph-color:var(--git-graph-color0);} [data-color=\"1\"]{--git-graph-color:var(--git-graph-color1);} [data-color=\"2\"]{--git-graph-color:var(--git-graph-color2);} [data-color=\"3\"]{--git-graph-color:var(--git-graph-color3);} [data-color=\"4\"]{--git-graph-color:var(--git-graph-color4);} [data-color=\"5\"]{--git-graph-color:var(--git-graph-color5);} [data-color=\"6\"]{--git-graph-color:var(--git-graph-color6);} [data-color=\"7\"]{--git-graph-color:var(--git-graph-color7);} [data-color=\"8\"]{--git-graph-color:var(--git-graph-color8);} [data-color=\"9\"]{--git-graph-color:var(--git-graph-color9);} [data-color=\"10\"]{--git-graph-color:var(--git-graph-color10);} [data-color=\"11\"]{--git-graph-color:var(--git-graph-color11);} </style>');
+			expect(mockedWebviewPanel.panel.webview.html).toContain('--git-graph-color0:var(--vscode-scmGraph-historyItemRefColor, var(--vscode-charts-green));');
+			expect(mockedWebviewPanel.panel.webview.html).toContain('--git-graph-color5:var(--vscode-scmGraph-foreground5, var(--vscode-charts-purple));');
+			expect(mockedWebviewPanel.panel.webview.html).toContain('[data-color="5"]{--git-graph-color:var(--git-graph-color5);}');
 		});
 
 		it('Should get HTML when no Git executable is known', () => {
@@ -3802,5 +3811,21 @@ describe('standardiseCspSource', () => {
 
 		// Assert
 		expect(result).toBe('https://www.mhutchie.com:443');
+	});
+});
+
+
+describe('serializeWebviewState', () => {
+	it('Keeps script terminators and Unicode separators as data', () => {
+		const state = { name: '</script><div id=injected>name</div>', separators: '\u2028\u2029' };
+		const encoded = serializeWebviewState(state);
+		expect(encoded).not.toContain('<');
+		expect(encoded).not.toContain('\u2028');
+		expect(encoded).not.toContain('\u2029');
+		expect(JSON.parse(encoded)).toEqual(state);
+	});
+
+	it('Preserves undefined state used by the host mocks', () => {
+		expect(serializeWebviewState(undefined)).toBe('undefined');
 	});
 });

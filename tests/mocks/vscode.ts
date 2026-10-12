@@ -1,4 +1,4 @@
-import * as vscode from 'vscode';
+import vscode = require('vscode');
 import { RequestMessage, ResponseMessage, Writeable } from '../../src/types';
 
 
@@ -24,8 +24,28 @@ let mockedWebviews: { panel: vscode.WebviewPanel, mocks: WebviewPanelMocks }[] =
 export const mocks = {
 	extensionContext: {
 		asAbsolutePath: jest.fn(),
+		get extensionUri() { return Uri.file('/path/to/extension'); },
+		get globalStorageUri() { return Uri.file('/path/to/globalStorage'); },
+		get logUri() { return Uri.file('/path/to/logs'); },
+		get storageUri() { return Uri.file('/path/to/storage'); },
+		extensionMode: 1,
+		extension: {} as vscode.Extension<unknown>,
+		environmentVariableCollection: {} as vscode.GlobalEnvironmentVariableCollection,
+		secrets: {
+			keys: jest.fn(),
+			get: jest.fn(),
+			store: jest.fn(),
+			delete: jest.fn(),
+			onDidChange: jest.fn()
+		},
+		languageModelAccessInformation: {
+			onDidChange: jest.fn(),
+			canSendRequest: jest.fn()
+		},
 		extensionPath: '/path/to/extension',
 		globalState: {
+			keys: jest.fn(() => []),
+			setKeysForSync: jest.fn(),
 			get: jest.fn(),
 			update: jest.fn()
 		},
@@ -34,6 +54,7 @@ export const mocks = {
 		storagePath: '/path/to/storage',
 		subscriptions: [],
 		workspaceState: {
+			keys: jest.fn(() => []),
 			get: jest.fn(),
 			update: jest.fn()
 		}
@@ -214,6 +235,7 @@ function createWebviewPanel(viewType: string, title: string, _showOptions: ViewC
 		reveal: jest.fn((_viewColumn?: ViewColumn, _preserveFocus?: boolean) => { }),
 		title: title,
 		visible: true,
+		viewColumn: undefined,
 		viewType: viewType,
 		webview: {
 			asWebviewUri: jest.fn((uri: Uri) => uri.with({ scheme: 'vscode-webview-resource', path: 'file//' + uri.path.replace(/\\/g, '/') })),

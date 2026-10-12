@@ -2,7 +2,7 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import { AvatarManager } from './avatarManager';
 import { getConfig } from './config';
-import { DataSource, GitCommitDetailsData, GitConfigKey } from './dataSource';
+import { DataSource, GitConfigKey } from './dataSource';
 import { ExtensionState } from './extensionState';
 import { Logger } from './logger';
 import { RepoFileWatcher } from './repoFileWatcher';
@@ -169,6 +169,14 @@ export class GitGraphView extends Disposable {
 	 */
 	private async respondToMessage(msg: RequestMessage) {
 		this.repoFileWatcher.mute();
+		try {
+			await this.handleMessage(msg);
+		} finally {
+			this.repoFileWatcher.unmute();
+		}
+	}
+
+	private async handleMessage(msg: RequestMessage) {
 		let errorInfos: ErrorInfo[];
 
 		switch (msg.command) {
@@ -235,7 +243,7 @@ export class GitGraphView extends Disposable {
 				});
 				break;
 			case 'commitDetails':
-				let data = await Promise.all<GitCommitDetailsData, string | null>([
+				let data = await Promise.all([
 					msg.commitHash === UNCOMMITTED
 						? this.dataSource.getUncommittedDetails(msg.repo)
 						: msg.stash === null
@@ -626,7 +634,6 @@ export class GitGraphView extends Disposable {
 				break;
 		}
 
-		this.repoFileWatcher.unmute();
 	}
 
 	/**
@@ -715,7 +722,7 @@ export class GitGraphView extends Disposable {
 			<p class="unableToLoadMessage">${UNABLE_TO_FIND_GIT_MSG}</p>
 			</body>`;
 		} else if (numRepos > 0) {
-			body = `<body>
+			body = `<body data-theme-graph-colours="${initialState.config.graph.colours[0].startsWith('var(--vscode-')}">
 			<div id="view" tabindex="-1">
 				<div id="controls">
 					<span id="repoControl"><span class="unselectable">Repo: </span><div id="repoDropdown" class="dropdown"></div></span>
@@ -734,7 +741,7 @@ export class GitGraphView extends Disposable {
 				<div id="footer"></div>
 			</div>
 			<div id="scrollShadow"></div>
-			<script nonce="${nonce}">var initialState = ${JSON.stringify(initialState)}, globalState = ${JSON.stringify(globalState)}, workspaceState = ${JSON.stringify(workspaceState)};</script>
+			<script nonce="${nonce}">var initialState = ${serializeWebviewState(initialState)}, globalState = ${serializeWebviewState(globalState)}, workspaceState = ${serializeWebviewState(workspaceState)};</script>
 			<script nonce="${nonce}" src="${this.getMediaUri('out.min.js')}"></script>
 			</body>`;
 		} else {
@@ -809,6 +816,13 @@ export class GitGraphView extends Disposable {
 			loadViewTo: loadViewTo
 		});
 	}
+}
+
+/**
+ * Serialize state safely inside a webview script element.
+ */
+export function serializeWebviewState(state: unknown) {
+	return (JSON.stringify(state) ?? 'undefined').replace(/</g, '\\u003c').replace(/\u2028/g, '\\u2028').replace(/\u2029/g, '\\u2029');
 }
 
 /**

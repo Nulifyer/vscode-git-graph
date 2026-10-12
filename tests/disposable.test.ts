@@ -1,4 +1,4 @@
-import * as vscode from 'vscode';
+import vscode = require('vscode');
 import { Disposable, toDisposable } from '../src/utils/disposable';
 
 class DisposableTest extends Disposable {

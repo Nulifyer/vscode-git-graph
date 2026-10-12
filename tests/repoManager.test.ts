@@ -7,7 +7,7 @@ jest.mock('../src/extensionState');
 jest.mock('../src/logger');
 jest.mock('../src/utils/bufferedQueue');
 
-import * as fs from 'fs';
+import fs = require('fs');
 import { ConfigurationChangeEvent } from 'vscode';
 import { DataSource } from '../src/dataSource';
 import { ExtensionState } from '../src/extensionState';

@@ -152,7 +152,7 @@ class Branch {
 		shadow.setAttribute('d', path);
 		line.setAttribute('class', 'line');
 		line.setAttribute('d', path);
-		line.setAttribute('stroke', isCommitted ? colour : '#808080');
+		line.setAttribute('stroke', isCommitted ? colour : 'var(--vscode-descriptionForeground, var(--vscode-foreground))');
 		if (!isCommitted && uncommittedChanges === GG.GraphUncommittedChangesStyle.OpenCircleAtTheCheckedOutCommit) {
 			line.setAttribute('stroke-dasharray', '2px');
 		}
@@ -298,7 +298,7 @@ class Vertex {
 	public draw(svg: SVGElement, config: GG.GraphConfig, expandOffset: boolean, overListener: (event: MouseEvent) => void, outListener: (event: MouseEvent) => void) {
 		if (this.onBranch === null) return;
 
-		const colour = this.isCommitted ? config.colours[this.onBranch.getColour() % config.colours.length] : '#808080';
+		const colour = this.isCommitted ? config.colours[this.onBranch.getColour() % config.colours.length] : 'var(--vscode-descriptionForeground, var(--vscode-foreground))';
 		const cx = (this.x * config.grid.x + config.grid.offsetX).toString();
 		const cy = (this.id * config.grid.y + config.grid.offsetY + (expandOffset ? config.grid.expandY : 0)).toString();
 
@@ -358,7 +358,7 @@ class Graph {
 
 	private tooltipId: number = -1;
 	private tooltipElem: HTMLElement | null = null;
-	private tooltipTimeout: NodeJS.Timer | null = null;
+	private tooltipTimeout: ReturnType<typeof setTimeout> | null = null;
 	private tooltipVertex: HTMLElement | null = null;
 
 	constructor(id: string, viewElem: HTMLElement, config: GG.GraphConfig, muteConfig: GG.MuteCommitsConfig) {

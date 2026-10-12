@@ -1,57 +1,93 @@
 {
-    "version": "2.0.0",
-    "presentation": {
-        "reveal": "always",
-        "focus": false,
-        "echo": true,
-        "showReuseMessage": false,
-        "panel": "shared"
-    },
-    "tasks": [
-        {
-            "type": "npm",
-            "script": "compile",
-            "label": "Compile"
-        },
-        {
-            "type": "npm",
-            "script": "compile-src",
-            "label": "Compile (Back-End Only)"
-        },
-        {
-            "type": "npm",
-            "script": "compile-web",
-            "label": "Compile (Front-End Only)"
-        },
-        {
-            "type": "npm",
-            "script": "compile-web-debug",
-            "label": "Compile (Front-End Only) - Debug"
-        },
-        {
-            "type": "npm",
-            "script": "lint",
-            "label": "Lint"
-        },
-        {
-            "type": "npm",
-            "script": "package",
-            "label": "Package VSIX"
-        },
-        {
-            "type": "npm",
-            "script": "package-and-install",
-            "label": "Package VSIX (Install on Completion)"
-        },
-        {
-            "type": "npm",
-            "script": "test",
-            "label": "Run Unit Tests"
-        },
-        {
-            "type": "npm",
-            "script": "test-and-report-coverage",
-            "label": "Run Unit Tests (Report Code Coverage)"
-        }
-    ]
+	"version": "2.0.0",
+	"presentation": {
+		"reveal": "always",
+		"focus": false,
+		"echo": true,
+		"showReuseMessage": false,
+		"panel": "shared"
+	},
+	"tasks": [
+		{
+			"type": "shell",
+			"label": "Compile",
+			"command": "bun",
+			"args": [
+				"run",
+				"compile"
+			]
+		},
+		{
+			"type": "shell",
+			"label": "Compile (Back-End Only)",
+			"command": "bun",
+			"args": [
+				"run",
+				"compile-src"
+			]
+		},
+		{
+			"type": "shell",
+			"label": "Compile (Front-End Only)",
+			"command": "bun",
+			"args": [
+				"run",
+				"compile-web"
+			]
+		},
+		{
+			"type": "shell",
+			"label": "Compile (Front-End Only) - Debug",
+			"command": "bun",
+			"args": [
+				"run",
+				"compile-web-debug"
+			]
+		},
+		{
+			"type": "shell",
+			"label": "Lint",
+			"command": "bun",
+			"args": [
+				"run",
+				"lint"
+			]
+		},
+		{
+			"type": "shell",
+			"label": "Package VSIX",
+			"command": "bun",
+			"args": [
+				"run",
+				"package"
+			]
+		},
+		{
+			"type": "shell",
+			"label": "Package VSIX (Install on Completion)",
+			"command": "bun",
+			"args": [
+				"run",
+				"package-and-install"
+			]
+		},
+		{
+			"type": "shell",
+			"label": "Run Unit Tests",
+			"command": "bun",
+			"args": [
+				"run",
+				"test"
+			]
+		},
+		{
+			"type": "shell",
+			"label": "Run Unit Tests (Report Code Coverage)",
+			"command": "bun",
+			"args": [
+				"run",
+				"test-and-report-coverage"
+			]
+		}
+	]
 }

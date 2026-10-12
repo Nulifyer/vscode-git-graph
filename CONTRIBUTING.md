@@ -1,100 +1,68 @@
 # Contributing to Git Graph
 
-Thank you for taking the time to contribute!
+This local build is maintained by [nulifyer](https://github.com/Nulifyer). The original project is [Michael Hutchison's Git Graph](https://github.com/mhutchie/vscode-git-graph). Preserve the original license and source attribution.
 
-The following are a set of guidelines for contributing to vscode-git-graph.
+Use [the fork repository](https://github.com/Nulifyer/vscode-git-graph) and [its issue tracker](https://github.com/Nulifyer/vscode-git-graph/issues) for contributions and support.
 
-## Code of Conduct
+## Development
 
-This project and everyone participating in it is governed by the [Git Graph Code of Conduct](CODE_OF_CONDUCT.md). By participating, you are expected to uphold this code. Please report unacceptable behavior to [mhutchie@16right.com](mailto:mhutchie@16right.com).
+Use Bun 1.4.3, Node 24 or newer, and stable VS Code 1.141.0 or newer.
 
-## How Can I Contribute?
+```bash
+bun install --frozen-lockfile
+bun run check
+```
 
-### Reporting Bugs
+The extension runs in VS Code's Node extension host. Bun owns package installation, build orchestration, and webview minification. TypeScript 6.0.3 is retained until TypeScript ESLint and ts-jest support TypeScript 7.
 
-Raise a bug you've found to help us improve!
+The frontend reads shared types directly from `src/types.ts`. It does not require a prior backend build. Run `bun run typecheck` to check the source, webview, tests, and build scripts. Build scripts skip third-party Bun declaration checks; application and test declarations remain checked.
 
-Check the [open bugs](https://github.com/mhutchie/vscode-git-graph/issues?q=is%3Aissue+is%3Aopen+label%3A"bugs"), and any fixed bugs ready for release on the [project board](https://github.com/mhutchie/vscode-git-graph/projects/1#column-4514040), to see if it's already being resolved. If it is, give the issue a thumbs up, and help provide additional context if the issue author was unable to provide some details.
+## Debugging and verification
 
-If the bug hasn't previously been reported, please follow these steps:
-1. Raise an issue using the "Bug Report" template. [Create Bug Report](https://github.com/mhutchie/vscode-git-graph/issues/new?assignees=mhutchie&labels=bug&template=bug-report.md&title=)
-2. Complete the template, providing information for all of the required sections.
-3. Click "Submit new issue"
+Press F5 to open an Extension Development Host. Build first with `bun run compile`. Use `bun run compile-web-debug` and `Developer: Open Webview Developer Tools` to inspect the frontend.
 
-We will respond promptly, and get it resolved as quickly as possible.
+Run `bun run test-extension-host` to test activation, rendered commit rows and graph SVG, commit details opened by a webview click, and real Git parsing. The test also checks live theme changes in dark, light, and both high-contrast themes. Set `VSCODE_EXECUTABLE_PATH` to use an installed VS Code executable. Otherwise the test downloads the release specified by the manifest. Linux requires a display; CI uses `xvfb-run`.
 
-### Feature Requests
+## Local installation
 
-Suggest a new feature for this extension! We want to make Git Graph an even more useful tool in Visual Studio Code, so any suggestions you have are greatly appreciated.
+Disable `mhutchie.git-graph` before enabling `nulifyer.git-graph`. Both extensions register the same command IDs and settings.
 
-Check the [open feature requests](https://github.com/mhutchie/vscode-git-graph/issues?q=is%3Aissue+is%3Aopen+label%3A"feature+request"), and any feature requests ready for release on the [project board](https://github.com/mhutchie/vscode-git-graph/projects/1#column-4514040), to see if your idea is already under consideration or on its way. If it is, give the issue a thumbs up so it will be higher prioritised.
+```bash
+bun run package-and-install
+```
 
-If your feature hasn't previously been suggested, please follow these steps:
-1. Raise an issue using the "Feature Request" template. [Create Feature Request](https://github.com/mhutchie/vscode-git-graph/issues/new?assignees=mhutchie&labels=feature+request&template=feature-request.md&title=)
-2. Follow the template as you see appropriate, it's only meant to be a guide.
-3. Click "Submit new issue"
+The packaging tool is a pinned local dependency. Fully quit VS Code and reopen it after replacing the extension. Installed users do not need Bun.
 
-We will respond promptly, and your request will be prioritised according to the Git Graph [Issue Prioritisation](https://github.com/mhutchie/vscode-git-graph/wiki/Issue-Prioritisation).
+## Distribution
 
-### Improvements
+This build is not published to the Marketplace. The existing license prohibits distributing derivative works. Changing maintainer metadata does not change those terms.
 
-Suggest an improvement to existing functionality of this extension! We want to make Git Graph an even more useful tool in Visual Studio Code, so any improvements you have are greatly appreciated.
+To test an installed custom theme, set `VSCODE_TEST_THEME_EXTENSION` to its extension directory and `VSCODE_TEST_THEME_NAME` to its theme ID. Set `VSCODE_TEST_GRAPH_COLOURS` to a JSON array to check a custom graph palette. All configuration changes use the temporary test profile.
 
-Check the [open improvements](https://github.com/mhutchie/vscode-git-graph/issues?q=is%3Aissue+is%3Aopen+label%3A"improvement"), and any improvements ready for release on the [project board](https://github.com/mhutchie/vscode-git-graph/projects/1#column-4514040), to see if your improvement is already under consideration or on its way. If it is, give the issue a thumbs up so it will be higher prioritised.
+## GitHub releases and Marketplace publishing
 
-If your improvement hasn't previously been suggested, please follow these steps:
-1. Raise an issue using the "Improvement" template. [Create Improvement](https://github.com/mhutchie/vscode-git-graph/issues/new?assignees=mhutchie&labels=improvement&template=improvement.md&title=)
-2. Follow the template as you see appropriate, it's only meant to be a guide.
-3. Click "Submit new issue"
+The `Release` workflow runs when a GitHub release is published. Its tag must be `v` followed by the committed `package.json` version. It rejects mismatches rather than changing the version during CI.
 
-We will respond promptly, and your request will be prioritised according to the Git Graph [Issue Prioritisation](https://github.com/mhutchie/vscode-git-graph/wiki/Issue-Prioritisation).
+The reusable `Build & Test` workflow runs lint, typechecking, and tests on Node 24 and 26. It builds one VSIX with the Bun version pinned in `packageManager`, then tests that packaged extension in VS Code. The release workflow attaches the verified VSIX and its SHA-256 checksum to the GitHub release. Marketplace publishing downloads those assets, verifies the checksum, and publishes that file without rebuilding it.
 
-### Contributing To Development
+Add an Azure DevOps Marketplace Manage PAT for the `nulifyer` publisher as the repository secret `VSCE_PAT`, matching the guget setup. Enter the token through the hidden CLI prompt:
 
-If you're interested in helping contribute, either:
-* Find an open issue you'd like to work on, and comment on it. Once the code owner has responded with some background information and initial ideas, it will be assigned to you to work on.
-* Raise an issue describing the feature you'd like to work on, mentioning that you'd like to implement it. Once it has been responded to by the code owner, it has been confirmed as a suitable feature of Git Graph and it will be assigned to you to work on.
+```bash
+gh secret set VSCE_PAT --repo Nulifyer/vscode-git-graph
+```
 
-Step 1: To set up your development environment, please follow these steps:
-1. Install [Node.js](https://nodejs.org/en/) if it is not already installed.
-2. Clone the [vscode-git-graph](https://github.com/mhutchie/vscode-git-graph) repo on GitHub.
-3. Open the repo in Visual Studio Code.
-4. In the Visual Studio Code terminal, run `npm install` to automatically download all of the required Node.js dependencies.
-5. Install the [ESLint](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint) extension if it is not already installed.
-6. Create and checkout a branch for the issue you're going to work on.
+The GitHub release upload uses the automatic `GITHUB_TOKEN`; it does not need a separate GitHub PAT. The Marketplace PAT is exposed only to the publishing step.
 
-Step 2: Review the [Codebase Outline](https://github.com/mhutchie/vscode-git-graph/wiki/Codebase-Outline), so you have a general understanding of the structure of the codebase.
+After committing and pushing a version change, tag that commit and push the tag. Publish the GitHub release to start the workflow. For the current version:
 
-Step 3: To compile the code, run the appropriate npm script in the Visual Studio Code terminal as follows:
-* `npm run compile`: Compiles both front and backend code
-* `npm run compile-src`: Compiles the backend code only
-* `npm run compile-web`: Compiles the frontend code only, with minification.
-* `npm run compile-web-debug`: Compiles the frontend code, without minification.
+```bash
+git tag v1.31.3
+git push origin v1.31.3
+gh release create v1.31.3 --verify-tag --generate-notes
+```
 
-_Note: When you first open the codebase, you'll need to run `npm run compile-src` so that the types defined by the backend are made available for the frontend to use, otherwise there will be a number of type errors in the frontend code. Similarly, if you make a change to the backend types that you also want to use in the frontend via the GG namespace, you'll need to run `npm run compile-src` before they can be used._
+A GitHub prerelease uses the Marketplace prerelease channel. Keep the numeric version and select the GitHub prerelease option. The workflow uses `--pre-release` when packaging and publishing.
 
-Step 4: To quickly test your changes:
-* Pressing F5 launches the Extension Development Host in a new window, overriding the installed version of Git Graph with the version compiled in Step 3. You can:
-    * Use the extension to test your changes
-    * View the Webview Developer Tools by running the Visual Studio Code command `Developer: Open Webview Developer Tools`. This allows you to:
-        * View the front end JavaScript console
-        * View and modify the CSS rules (temporarily)
-        * View and modify the DOM tree (temporarily)
-        * If you ran `npm run compile-web-debug` in Step 3, you can also add breakpoints to the compiled frontend JavaScript.
-* Switching back to the Visual Studio Code window that you were in (from Step 3), you can:
-    * Add breakpoints to the backend TypeScript
-    * Restart the Extension Development Host
-    * Stop the Extension Development Host
+If Marketplace publishing fails, fix the secret or publisher access and rerun only the failed job. The VSIX remains downloadable from the GitHub release. Repeated Marketplace publication skips versions already published.
 
-Step 5: To do a complete test of your changes:
-1. Install Visual Studio Code Extensions `npm install -g vsce` if it is not already installed.
-2. Change the version of the extension defined in `package.json` on line 4 to an alpha release, for example `1.13.0-alpha.0`. You should increment the alpha version each time you package a modified version of the extension. _Make sure you don't commit the version number with your changes._
-3. Run the npm script `npm run package-and-install` in the Visual Studio Code terminal. This will compile and package the extension into a `vsix` file, and then install it.
-4. Restart Visual Studio Code, and verify that you have the correct alpha version installed.
-5. Test out the extension, it will behave exactly the same as a published release.
-
-Step 6: Raise a pull request once you've completed development, we'll have a look at it.
-
-#### Style Guide
-
-The required style is produced by running "Format Document" in Visual Studio Code.
+Microsoft documents retirement of global Azure DevOps PATs on December 1, 2026. Follow the [official authentication guidance](https://code.visualstudio.com/api/working-with-extensions/publishing-extension#secure-automated-publishing-to-visual-studio-marketplace) when migrating this workflow to Entra ID authentication.

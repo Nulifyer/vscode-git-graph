@@ -132,6 +132,6 @@
 	outline:1px solid var(--vscode-editor-findMatchHighlightBorder, transparent);
 	outline-offset:-1px;
 }
-body.vscode-high-contrast .findMatch{
+:is(body.vscode-high-contrast, body.vscode-high-contrast-light) .findMatch{
 	outline-style:dotted;
 }

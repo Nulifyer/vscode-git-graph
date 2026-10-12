@@ -12,7 +12,7 @@ let spyOnLog: jest.SpyInstance;
 beforeAll(() => {
 	logger = new Logger();
 	spyOnLog = jest.spyOn(logger, 'log');
-	jest.useFakeTimers();
+	jest.useFakeTimers({ legacyFakeTimers: true });
 });
 
 afterAll(() => {
@@ -81,6 +81,23 @@ describe('RepoFileWatcher', () => {
 
 		// Assert
 		expect(callback).toHaveBeenCalledTimes(0);
+	});
+
+	it('Keeps overlapping operations muted until both finish', () => {
+		repoFileWatcher.start('/path/to/repo');
+		const onDidChange = (<jest.Mock>repoFileWatcher['fsWatcher']!.onDidChange).mock.calls[0][0];
+		repoFileWatcher.mute();
+		repoFileWatcher.mute();
+		repoFileWatcher.unmute();
+		date.setCurrentTime(1587559260);
+		onDidChange(vscode.Uri.file('/path/to/repo/file'));
+		jest.runOnlyPendingTimers();
+		expect(callback).not.toHaveBeenCalled();
+		repoFileWatcher.unmute();
+		date.setCurrentTime(1587559262);
+		onDidChange(vscode.Uri.file('/path/to/repo/file'));
+		jest.runOnlyPendingTimers();
+		expect(callback).toHaveBeenCalledTimes(1);
 	});
 
 	it('Should resume reporting file events after 1.5 seconds', () => {

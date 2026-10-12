@@ -269,10 +269,19 @@ class Config {
 	 */
 	get graph(): GraphConfig {
 		const colours = this.getRenamedExtensionSetting<string[]>('graph.colours', 'graphColours', []);
+		const customColours = Array.isArray(colours)
+			? colours.filter((v) => typeof v === 'string' && v.match(/^\s*(#[0-9a-fA-F]{6}|#[0-9a-fA-F]{8}|rgb[a]?\s*\(\d{1,3},\s*\d{1,3},\s*\d{1,3}\))\s*$/) !== null)
+			: [];
 		return {
-			colours: Array.isArray(colours) && colours.length > 0
-				? colours.filter((v) => v.match(/^\s*(#[0-9a-fA-F]{6}|#[0-9a-fA-F]{8}|rgb[a]?\s*\(\d{1,3},\s*\d{1,3},\s*\d{1,3}\))\s*$/) !== null)
-				: ['#0085d9', '#d9008f', '#00d90a', '#d98500', '#a300d9', '#ff0000', '#00d9cc', '#e138e8', '#85d900', '#dc5b23', '#6f24d6', '#ffcc00'],
+			// CSS variables keep SVG and reference colours live when VS Code changes theme.
+			colours: customColours.length > 0 ? customColours : [
+				'var(--vscode-scmGraph-historyItemRefColor, var(--vscode-charts-green))',
+				'var(--vscode-scmGraph-foreground1, var(--vscode-charts-yellow))',
+				'var(--vscode-scmGraph-foreground2, var(--vscode-charts-red))',
+				'var(--vscode-scmGraph-foreground3, var(--vscode-charts-orange))',
+				'var(--vscode-scmGraph-foreground4, var(--vscode-charts-blue))',
+				'var(--vscode-scmGraph-foreground5, var(--vscode-charts-purple))'
+			],
 			style: this.getRenamedExtensionSetting<string>('graph.style', 'graphStyle', 'rounded') === 'angular'
 				? GraphStyle.Angular
 				: GraphStyle.Rounded,
@@ -598,6 +607,8 @@ class Config {
 	 */
 	private getRenamedExtensionSetting<T>(newSection: string, oldSection: string, defaultValue: T) {
 		const newValues = this.config.inspect<T>(newSection), oldValues = this.config.inspect<T>(oldSection);
+		if (typeof newValues !== 'undefined' && typeof newValues.workspaceFolderValue !== 'undefined') return newValues.workspaceFolderValue;
+		if (typeof oldValues !== 'undefined' && typeof oldValues.workspaceFolderValue !== 'undefined') return oldValues.workspaceFolderValue;
 		if (typeof newValues !== 'undefined' && typeof newValues.workspaceValue !== 'undefined') return newValues.workspaceValue;
 		if (typeof oldValues !== 'undefined' && typeof oldValues.workspaceValue !== 'undefined') return oldValues.workspaceValue;
 		if (typeof newValues !== 'undefined' && typeof newValues.globalValue !== 'undefined') return newValues.globalValue;

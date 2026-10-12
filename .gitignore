@@ -3,3 +3,9 @@ media
 node_modules
 out
 *.vsix
+
+.build
+
+.vscode-test
+
+*.vsix.sha256

@@ -3,7 +3,7 @@ name: Improvement
 about: Suggest an improvement for this extension
 title: ''
 labels: improvement
-assignees: mhutchie
+assignees: Nulifyer
 
 ---
 

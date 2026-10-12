@@ -1,11 +1,11 @@
 {
 	"name": "git-graph",
 	"displayName": "Git Graph",
-	"version": "1.30.0",
-	"publisher": "mhutchie",
+	"version": "1.31.3",
+	"publisher": "nulifyer",
 	"author": {
-		"name": "Michael Hutchison",
-		"email": "mhutchie@16right.com"
+		"name": "nulifyer",
+		"url": "https://github.com/Nulifyer"
 	},
 	"description": "View a Git Graph of your repository, and perform Git actions from the graph.",
 	"keywords": [
@@ -18,25 +18,18 @@
 	"categories": [
 		"Other"
 	],
-	"homepage": "https://github.com/mhutchie/vscode-git-graph",
-	"repository": {
-		"type": "git",
-		"url": "https://github.com/mhutchie/vscode-git-graph.git"
-	},
-	"bugs": {
-		"url": "https://github.com/mhutchie/vscode-git-graph/issues"
-	},
-	"qna": "https://github.com/mhutchie/vscode-git-graph/wiki/Support-Resources",
-	"license": "SEE LICENSE IN 'LICENSE'",
+	"homepage": "https://github.com/Nulifyer/vscode-git-graph",
+	"license": "SEE LICENSE IN LICENSE",
 	"icon": "resources/icon.png",
 	"engines": {
-		"vscode": "^1.38.0"
+		"vscode": "^1.141.0",
+		"node": ">=24"
 	},
 	"extensionKind": [
 		"workspace"
 	],
 	"activationEvents": [
-		"*"
+		"onStartupFinished"
 	],
 	"main": "./out/extension.js",
 	"contributes": {
@@ -728,21 +721,8 @@
 						"description": "Colour (HEX or RGB)",
 						"pattern": "^\\s*(#[0-9a-fA-F]{6}|#[0-9a-fA-F]{8}|rgb[a]?\\s*\\(\\d{1,3},\\s*\\d{1,3},\\s*\\d{1,3}\\))\\s*$"
 					},
-					"default": [
-						"#0085d9",
-						"#d9008f",
-						"#00d90a",
-						"#d98500",
-						"#a300d9",
-						"#ff0000",
-						"#00d9cc",
-						"#e138e8",
-						"#85d900",
-						"#dc5b23",
-						"#6f24d6",
-						"#ffcc00"
-					],
-					"description": "Specifies the colours used on the graph."
+					"default": [],
+					"markdownDescription": "Graph colours. Leave empty to follow the active VS Code Source Control Graph theme. A non-empty palette overrides theme colours."
 				},
 				"git-graph.graph.style": {
 					"type": "string",
@@ -1293,20 +1273,7 @@
 						"description": "Colour (HEX or RGB)",
 						"pattern": "^\\s*(#[0-9a-fA-F]{6}|#[0-9a-fA-F]{8}|rgb[a]?\\s*\\(\\d{1,3},\\s*\\d{1,3},\\s*\\d{1,3}\\))\\s*$"
 					},
-					"default": [
-						"#0085d9",
-						"#d9008f",
-						"#00d90a",
-						"#d98500",
-						"#a300d9",
-						"#ff0000",
-						"#00d9cc",
-						"#e138e8",
-						"#85d900",
-						"#dc5b23",
-						"#6f24d6",
-						"#ffcc00"
-					],
+					"default": [],
 					"description": "Specifies the colours used on the graph.",
 					"deprecationMessage": "Depreciated: This setting has been renamed to git-graph.graph.colours",
 					"markdownDeprecationMessage": "Depreciated: This setting has been renamed to `#git-graph.graph.colours#`"
@@ -1512,32 +1479,54 @@
 		}
 	},
 	"scripts": {
-		"vscode:prepublish": "npm run compile",
-		"vscode:uninstall": "node ./out/life-cycle/uninstall.js",
-		"clean": "node ./.vscode/clean.js",
-		"compile": "npm run lint && npm run clean && npm run compile-src && npm run compile-web",
-		"compile-src": "tsc -p ./src && node ./.vscode/package-src.js",
-		"compile-web": "tsc -p ./web && node ./.vscode/package-web.js",
-		"compile-web-debug": "tsc -p ./web && node ./.vscode/package-web.js debug",
-		"lint": "eslint -c .eslintrc.json --max-warnings 0 --ext .ts ./src ./tests ./web",
+		"vscode:prepublish": "bun run compile",
+		"clean": "bun scripts/build.ts clean",
+		"compile": "bun run lint && bun run typecheck && bun scripts/build.ts",
+		"compile-src": "bun scripts/build.ts src",
+		"compile-web": "bun scripts/build.ts web",
+		"compile-web-debug": "bun scripts/build.ts web --debug",
+		"lint": "eslint --max-warnings 0 src tests web scripts",
+		"typecheck": "tsc -p src --noEmit && tsc -p web --noEmit && tsc -p tests --noEmit && tsc -p scripts --noEmit",
 		"package": "vsce package",
-		"package-and-install": "npm run package && node ./.vscode/install-package.js",
-		"test": "jest --verbose",
-		"test-and-report-coverage": "jest --verbose --coverage"
+		"package-and-install": "bun run package && bun scripts/install-package.ts",
+		"test": "jest --runInBand",
+		"test-and-report-coverage": "jest --runInBand --coverage",
+		"check": "bun run compile && bun run test",
+		"test-extension-host": "bun run compile && bun scripts/test-extension-host.ts"
 	},
 	"dependencies": {
-		"iconv-lite": "0.5.0"
+		"iconv-lite": "0.7.3"
 	},
 	"devDependencies": {
-		"@types/jest": "26.0.19",
-		"@types/node": "8.10.62",
-		"@types/vscode": "1.38.0",
-		"@typescript-eslint/eslint-plugin": "4.10.0",
-		"@typescript-eslint/parser": "4.10.0",
-		"eslint": "7.15.0",
-		"jest": "26.6.3",
-		"ts-jest": "26.4.4",
-		"typescript": "4.0.2",
-		"uglify-js": "3.10.0"
+		"@stylistic/eslint-plugin": "5.10.0",
+		"@types/bun": "1.4.3",
+		"@types/jest": "30.0.0",
+		"@types/node": "24.19.2",
+		"@types/vscode": "1.140.0",
+		"@vscode/test-electron": "3.1.0",
+		"@vscode/vsce": "4.0.0",
+		"eslint": "10.12.0",
+		"jest": "30.5.2",
+		"ts-jest": "29.4.14",
+		"typescript": "6.0.3",
+		"typescript-eslint": "8.71.2"
+	},
+	"packageManager": "bun@1.4.3",
+	"capabilities": {
+		"untrustedWorkspaces": {
+			"supported": false,
+			"description": "Git Graph runs Git and repository configuration. Trust the workspace before using it."
+		},
+		"virtualWorkspaces": {
+			"supported": false,
+			"description": "Git Graph requires a filesystem-backed repository and a Git executable."
+		}
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/Nulifyer/vscode-git-graph.git"
+	},
+	"bugs": {
+		"url": "https://github.com/Nulifyer/vscode-git-graph/issues"
 	}
 }

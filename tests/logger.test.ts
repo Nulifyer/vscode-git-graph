@@ -21,7 +21,7 @@ describe('Logger', () => {
 
 		// Assert
 		expect(vscode.window.createOutputChannel).toHaveBeenCalledWith('Git Graph');
-		expect(outputChannel.dispose).toBeCalledTimes(1);
+		expect(outputChannel.dispose).toHaveBeenCalledTimes(1);
 	});
 
 	it('Should log a message to the Output Channel', () => {

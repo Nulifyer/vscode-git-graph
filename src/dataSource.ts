@@ -421,7 +421,7 @@ export class DataSource extends Disposable {
 	 * @returns The comparison details.
 	 */
 	public getCommitComparison(repo: string, fromHash: string, toHash: string): Promise<GitCommitComparisonData> {
-		return Promise.all<DiffNameStatusRecord[], DiffNumStatRecord[], GitStatusFiles | null>([
+		return Promise.all([
 			this.getDiffNameStatus(repo, fromHash, toHash === UNCOMMITTED ? '' : toHash),
 			this.getDiffNumStat(repo, fromHash, toHash === UNCOMMITTED ? '' : toHash),
 			toHash === UNCOMMITTED ? this.getStatus(repo) : Promise.resolve(null)
@@ -1815,25 +1815,16 @@ export class DataSource extends Disposable {
 	 * @param resolveValue A callback invoked to resolve the data from `stdout` and `stderr`.
 	 * @param ignoreExitCode Ignore the exit code returned by Git (default: `FALSE`).
 	 */
-	private _spawnGit<T>(args: string[], repo: string, resolveValue: { (stdout: Buffer, stderr: string): T }, ignoreExitCode: boolean = false) {
-		return new Promise<T>((resolve, reject) => {
-			if (this.gitExecutable === null) {
-				return reject(UNABLE_TO_FIND_GIT_MSG);
-			}
-
-			resolveSpawnOutput(cp.spawn(this.gitExecutable.path, args, {
-				cwd: repo,
-				env: Object.assign({}, process.env, this.askpassEnv)
-			})).then((values) => {
-				const status = values[0], stdout = values[1], stderr = values[2];
-				if (status.code === 0 || ignoreExitCode) {
-					resolve(resolveValue(stdout, stderr));
-				} else {
-					reject(getErrorMessage(status.error, stdout, stderr));
-				}
-			});
-
-			this.logger.logCmd('git', args);
+	private async _spawnGit<T>(args: string[], repo: string, resolveValue: { (stdout: Buffer, stderr: string): T }, ignoreExitCode: boolean = false) {
+		if (this.gitExecutable === null) return Promise.reject(UNABLE_TO_FIND_GIT_MSG);
+		const output = resolveSpawnOutput(cp.spawn(this.gitExecutable.path, args, {
+			cwd: repo,
+			env: Object.assign({}, process.env, this.askpassEnv)
+		}));
+		this.logger.logCmd('git', args);
+		return output.then(([status, stdout, stderr]) => {
+			if (status.code !== 0 && !ignoreExitCode) throw getErrorMessage(status.error, stdout, stderr);
+			return resolveValue(stdout, stderr);
 		});
 	}
 }

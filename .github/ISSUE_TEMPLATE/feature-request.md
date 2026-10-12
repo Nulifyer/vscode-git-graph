@@ -3,7 +3,7 @@ name: Feature Request
 about: Suggest an idea for this extension
 title: ''
 labels: feature request
-assignees: mhutchie
+assignees: Nulifyer
 
 ---
 

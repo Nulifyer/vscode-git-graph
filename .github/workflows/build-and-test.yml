@@ -1,23 +1,102 @@
-name: 'Build & Test'
+name: Build & Test
 
 on:
   push:
-    branches:
-      - master
-      - develop
+    branches: [master, develop]
   pull_request:
-    branches:
-      - master
-      - develop
+    branches: [master, develop]
+  workflow_dispatch:
+  workflow_call:
+    inputs:
+      ref:
+        type: string
+        default: ''
+      release_tag:
+        type: string
+        default: ''
+      pre_release:
+        type: boolean
+        default: false
+    outputs:
+      vsix_name:
+        description: Verified extension package filename
+        value: ${{ jobs.package.outputs.vsix_name }}
+
+permissions:
+  contents: read
 
 jobs:
-  build:
+  check:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: ['24', '26']
     steps:
-    - uses: actions/checkout@v1
-    - uses: actions/setup-node@v1
-      with:
-        node-version: '12.x'
-    - run: npm install
-    - run: npm run compile
-    - run: npm run test
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.ref || github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: ${{ matrix.node }}
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0; reads packageManager
+      - name: Validate release metadata
+        run: bun scripts/release.ts metadata
+        env:
+          RELEASE_TAG: ${{ inputs.release_tag }}
+      - run: bun install --frozen-lockfile
+      - run: bun run check
+
+  package:
+    needs: check
+    runs-on: ubuntu-latest
+    outputs:
+      vsix_name: ${{ steps.metadata.outputs.vsix_name }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.ref || github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24'
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0; reads packageManager
+      - run: bun install --frozen-lockfile
+      - id: metadata
+        run: bun scripts/release.ts metadata
+        env:
+          RELEASE_TAG: ${{ inputs.release_tag }}
+      - name: Build VSIX
+        run: bun scripts/release.ts package
+        env:
+          PRE_RELEASE: ${{ inputs.pre_release || false }}
+      - name: Inspect and extract packaged extension
+        run: |
+          python3 - <<'PY'
+          import json, os, zipfile
+          expected = json.load(open('package.json'))
+          with zipfile.ZipFile(os.environ['VSIX_NAME']) as archive:
+              actual = json.loads(archive.read('extension/package.json'))
+              for key in ['name', 'version', 'publisher']:
+                  assert actual[key] == expected[key], f'Packaged {key} does not match source'
+              archive.extractall('.build/release-vsix')
+          PY
+        env:
+          VSIX_NAME: ${{ steps.metadata.outputs.vsix_name }}
+      - name: Test packaged VS Code webview
+        run: xvfb-run -a bun scripts/test-extension-host.ts
+        env:
+          EXTENSION_UNDER_TEST: .build/release-vsix/extension
+      - name: Checksum verified VSIX
+        run: sha256sum "$VSIX_NAME" > "$VSIX_NAME.sha256"
+        env:
+          VSIX_NAME: ${{ steps.metadata.outputs.vsix_name }}
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: vsix
+          path: |
+            ${{ steps.metadata.outputs.vsix_name }}
+            ${{ steps.metadata.outputs.vsix_name }}.sha256
+          if-no-files-found: error
+          retention-days: 14

@@ -1,0 +1,70 @@
+name: Release
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.event.release.tag_name }}
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    uses: ./.github/workflows/build-and-test.yml
+    with:
+      ref: refs/tags/${{ github.event.release.tag_name }}
+      release_tag: ${{ github.event.release.tag_name }}
+      pre_release: ${{ github.event.release.prerelease }}
+
+  github-release:
+    needs: verify
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: vsix
+      - name: Verify artifact checksum
+        run: sha256sum --check "$VSIX_NAME.sha256"
+        env:
+          VSIX_NAME: ${{ needs.verify.outputs.vsix_name }}
+      - name: Attach VSIX and checksum to release
+        run: gh release upload "$RELEASE_TAG" "$VSIX_NAME" "$VSIX_NAME.sha256" --repo "$GITHUB_REPOSITORY" --clobber
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+          VSIX_NAME: ${{ needs.verify.outputs.vsix_name }}
+
+  marketplace:
+    needs: [verify, github-release]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: refs/tags/${{ github.event.release.tag_name }}
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24'
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0; reads packageManager
+      - run: bun install --frozen-lockfile
+      - name: Download release VSIX
+        run: |
+          gh release download "$RELEASE_TAG" --pattern "$VSIX_NAME" --pattern "$VSIX_NAME.sha256" --dir "$RUNNER_TEMP/vsix" --repo "$GITHUB_REPOSITORY"
+          cd "$RUNNER_TEMP/vsix"
+          sha256sum --check "$VSIX_NAME.sha256"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+          VSIX_NAME: ${{ needs.verify.outputs.vsix_name }}
+      - name: Publish verified VSIX to Marketplace
+        run: bun scripts/release.ts publish "$RUNNER_TEMP/vsix/$VSIX_NAME"
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+          PRE_RELEASE: ${{ github.event.release.prerelease }}
+          VSIX_NAME: ${{ needs.verify.outputs.vsix_name }}

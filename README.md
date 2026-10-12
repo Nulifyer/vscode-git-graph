@@ -1,8 +1,10 @@
-# Git Graph extension for Visual Studio Code
+# Git Graph for Visual Studio Code
+
+This is the local build of [the GitHub fork](https://github.com/Nulifyer/vscode-git-graph), maintained by [nulifyer](https://github.com/Nulifyer), derived from [Michael Hutchison's Git Graph](https://github.com/mhutchie/vscode-git-graph). It uses extension ID `nulifyer.git-graph` and targets stable VS Code 1.141.0 or newer. The original attribution and license remain.
 
 View a Git Graph of your repository, and easily perform Git actions from the graph. Configurable to look the way you want!
 
-![Recording of Git Graph](https://github.com/mhutchie/vscode-git-graph/raw/master/resources/demo.gif)
+![Upstream Git Graph demonstration](https://github.com/mhutchie/vscode-git-graph/raw/master/resources/demo.gif)
 
 ## Features
 
@@ -66,6 +68,12 @@ View a Git Graph of your repository, and easily perform Git actions from the gra
 * A broad range of configurable settings (e.g. graph style, branch colours, and more...). See the 'Extension Settings' section below for more information.
 * "Git Graph" launch button in the Status Bar
 * "Git Graph: View Git Graph" launch command in the Command Palette
+
+## Theme integration
+
+The graph follows VS Code's Source Control Graph colors. Toolbar icons, dropdowns, reference labels, hover states, and controls use the active workbench theme. Changes apply while the graph is open.
+
+Leave `git-graph.graph.colours` empty to follow the theme. An explicitly configured palette overrides the graph colors. You can also customize the native `scmGraph.*` colors through `workbench.colorCustomizations`.
 
 ## Extension Settings
 
@@ -159,11 +167,28 @@ This extension contributes the following commands:
 
 ## Release Notes
 
-Detailed Release Notes are available [here](CHANGELOG.md).
+Local changes are recorded in the bundled CHANGELOG.md. [Upstream release history](https://github.com/mhutchie/vscode-git-graph/blob/d7f43f4/CHANGELOG.md) covers the original versions.
 
-## Visual Studio Marketplace
+## Local installation
 
-This extension is available on the [Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=mhutchie.git-graph) for Visual Studio Code.
+This build is not published to the Marketplace. Disable the original `mhutchie.git-graph` extension before enabling this build, because both register the same Git Graph commands.
+
+Build and install the local VSIX:
+
+```bash
+bun run package
+code --install-extension ./git-graph-1.31.3.vsix --force
+```
+
+Fully quit VS Code and reopen it after replacing the extension. Upstream wiki links below document the inherited functionality. Use [the fork repository](https://github.com/Nulifyer/vscode-git-graph) and [its issue tracker](https://github.com/Nulifyer/vscode-git-graph/issues) for this build.
+
+## Webview startup troubleshooting
+
+If VS Code reports `Could not register service worker: InvalidStateError`, fully quit all VS Code windows and reopen the editor. This matches a [VS Code/Chromium webview issue](https://github.com/microsoft/vscode/issues/125993).
+
+If a full restart does not resolve it, quit VS Code before backing up its service-worker cache. On this Linux installation, the directory is `~/.config/Code/Service Worker`. Move that directory to a uniquely named backup, then start VS Code again. Do not move the cache while VS Code is running. Keep the backup until the graph works.
+
+The isolated extension-host test uses a temporary profile and confirms that the packaged webview can load independently of existing profile state. It does not establish that a user's existing cache is corrupt.
 
 ## Acknowledgements
 

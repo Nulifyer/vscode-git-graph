@@ -1,10 +1,10 @@
 {
 	"compilerOptions": {
-		"declaration": true,
+		"declaration": false,
 		"lib": [
-			"es6"
+			"ES2024"
 		],
-		"module": "commonjs",
+		"module": "Node16",
 		"noFallthroughCasesInSwitch": true,
 		"noImplicitAny": true,
 		"noUnusedLocals": true,
@@ -12,12 +12,14 @@
 		"removeComments": true,
 		"sourceMap": true,
 		"strict": true,
-		"target": "es6",
+		"target": "ES2024",
 		"types": [
 			"jest",
 			"node",
-			"vscode",
-			"../src/utils/@types/node"
-		]
+			"vscode"
+		],
+		"moduleResolution": "Node16",
+		"noEmitOnError": true,
+		"isolatedModules": true
 	}
 }

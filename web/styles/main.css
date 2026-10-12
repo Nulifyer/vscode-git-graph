@@ -1,3 +1,9 @@
+/* Workbench theme tokens */
+
+:root{
+	--git-graph-border:var(--vscode-panel-border, var(--vscode-widget-border, var(--vscode-contrastBorder, transparent)));
+}
+
 /* Body */
 
 body{
@@ -9,6 +15,8 @@ body{
 	bottom:0;
 	margin:0;
 	padding:0;
+	color:var(--vscode-foreground);
+	background-color:var(--vscode-editor-background);
 }
 body.unableToLoad{
 	margin:0 20px;
@@ -164,7 +172,7 @@ code{
 	font-weight:700;
 }
 .graphTooltipSection{
-	border-top:1px solid rgba(128,128,128,0.5);
+	border-top:1px solid var(--git-graph-border);
 }
 .graphTooltipRef, .graphTooltipCombinedRef{
 	display:inline-block;
@@ -174,17 +182,18 @@ code{
 .graphTooltipRef{
 	margin:2px;
 	padding:0 5px;
-	background-color:rgba(128,128,128,0.15);
+	background-color:var(--vscode-badge-background);
 	border-radius:5px;
-	border:1px solid rgba(128,128,128,0.75);
+	border:1px solid var(--git-graph-border);
 	vertical-align:top;
 	font-size:12px;
 	cursor:default;
+	color:var(--vscode-badge-foreground);
 }
 .graphTooltipCombinedRef{
 	margin-left:5px;
 	padding-left:5px;
-	border-left:1px solid rgba(128,128,128,0.45);
+	border-left:1px solid var(--git-graph-border);
 	font-style:italic;
 }
 
@@ -214,7 +223,7 @@ code{
 	padding:0 4px;
 }
 #commitTable th{
-	border-bottom:1px solid rgba(128,128,128,0.5);
+	border-bottom:1px solid var(--git-graph-border);
 	line-height:18px;
 	padding:6px 12px;
 }
@@ -287,7 +296,7 @@ code{
 }
 .resizeCol.left{
 	left:0;
-	border-left:1px solid rgba(128,128,128,0.25);
+	border-left:1px solid var(--git-graph-border);
 }
 .resizeCol.right{
 	right:0;
@@ -300,7 +309,7 @@ code{
 	vertical-align:top;
 }
 #cdv.inline td{
-	background-color:rgba(128,128,128,0.1);
+	background-color:var(--vscode-editorWidget-background, var(--vscode-editor-background));
 	position:relative;
 	font-size:13px;
 	line-height:18px;
@@ -312,7 +321,7 @@ code{
 	left:0;
 	right:0;
 	bottom:0;
-	background-color:rgba(128,128,128,0.1);
+	background-color:var(--vscode-editorWidget-background, var(--vscode-editor-background));
 	font-size:13px;
 	line-height:18px;
 	white-space:normal;
@@ -338,10 +347,10 @@ code{
 	cursor:pointer;
 }
 .cdvControlBtn.active{
-	background-color:rgba(128,128,128,0.25);
+	background-color:var(--vscode-inputOption-activeBackground);
 }
 .cdvControlBtn.active:hover{
-	background-color:rgba(128,128,128,0.35);
+	background-color:var(--vscode-list-activeSelectionBackground);
 }
 
 #cdvCodeReview{
@@ -357,7 +366,7 @@ code{
 	margin-top:0;
 }
 .cdvFileViewTypeBtn{
-	background-color:rgba(128,128,128,0.125);
+	background-color:var(--vscode-list-hoverBackground, transparent);
 }
 
 #cdvExternalDiff{
@@ -388,7 +397,7 @@ code{
 	top:0;
 	bottom:0;
 	box-sizing:border-box;
-	border-right:1px solid rgba(128,128,128,0.2);
+	border-right:1px solid var(--git-graph-border);
 	overflow-x:hidden;
 	overflow-y:auto;
 }
@@ -518,7 +527,7 @@ code{
 	bottom:2px;
 }
 #cdv.inline #cdvContent{
-	border-left:1px solid rgba(128,128,128,0.2);
+	border-left:1px solid var(--git-graph-border);
 }
 #cdv.inline #cdvDivider{
 	top:0;
@@ -526,7 +535,7 @@ code{
 }
 #cdv.inline .cdvHeightResize{
 	bottom:0;
-	border-bottom:2px solid rgba(128,128,128,0.2);
+	border-bottom:2px solid var(--git-graph-border);
 }
 
 #cdv.docked #cdvContent, #cdv.docked #cdvControls{
@@ -539,7 +548,7 @@ code{
 }
 #cdv.docked .cdvHeightResize{
 	top:0;
-	border-top:2px solid rgba(128,128,128,0.2);
+	border-top:2px solid var(--git-graph-border);
 }
 
 
@@ -653,13 +662,14 @@ svg.openFolderIcon, svg.closedFolderIcon, svg.fileIcon{
 	cursor:help;
 }
 #commitTable tr.commit:hover, #commitTable tr.commit.contextMenuActive, #commitTable tr.commit.findCurrentCommit:hover, #commitTable tr.commit.graphVertexActive, #commitTable tr.commit.dialogActive{
-	background-color:rgba(128,128,128,0.15);
+	background-color:var(--vscode-list-hoverBackground, transparent);
+	color:var(--vscode-list-hoverForeground, var(--vscode-foreground));
 }
 #commitTable tr.commit.commitDetailsOpen{
-	background-color:rgba(128,128,128,0.25);
+	background-color:var(--vscode-list-inactiveSelectionBackground);
 }
 #commitTable tr.commit.commitDetailsOpen:hover, #commitTable tr.commit.commitDetailsOpen.contextMenuActive, #commitTable tr.commit.commitDetailsOpen.dialogActive, #commitTable tr.commit.commitDetailsOpen.graphVertexActive{
-	background-color:rgba(128,128,128,0.35);
+	background-color:var(--vscode-list-activeSelectionBackground);
 }
 
 #commitTable tr.commit.findCurrentCommit {
@@ -667,7 +677,7 @@ svg.openFolderIcon, svg.closedFolderIcon, svg.fileIcon{
 	outline:1px solid var(--vscode-editor-findMatchHighlightBorder, transparent);
 	outline-offset:-1px;
 }
-body.vscode-high-contrast #commitTable tr.commit.findCurrentCommit{
+:is(body.vscode-high-contrast, body.vscode-high-contrast-light) #commitTable tr.commit.findCurrentCommit{
 	outline-style:dotted;
 }
 
@@ -699,16 +709,28 @@ body.vscode-high-contrast #commitTable tr.commit.findCurrentCommit{
 	line-height:18px;
 	margin-top:2px;
 	margin-right:5px;
-	background-color:rgba(128,128,128,0.15);
+	background-color:var(--vscode-badge-background);
 	border-radius:5px;
-	border:1px solid rgba(128,128,128,0.75);
+	border:1px solid var(--git-graph-border);
 	vertical-align:top;
 	font-size:12px;
 	cursor:default;
 	overflow:hidden;
+	color:var(--vscode-badge-foreground);
 }
 .gitRef.active{
 	border-color:var(--git-graph-color);
+}
+body[data-theme-graph-colours="true"] .gitRef.active{
+	background-color:var(--git-graph-color);
+	color:var(--vscode-scmGraph-historyItemHoverLabelForeground, var(--vscode-editor-background));
+}
+body[data-theme-graph-colours="true"] .gitRef.active > svg{
+	background-color:transparent;
+	fill:currentColor;
+}
+.gitRef.remote > svg{
+	background-color:var(--vscode-scmGraph-historyItemRemoteRefColor, var(--git-graph-color));
 }
 .gitRef.active .gitRefName{
 	font-weight:bold;
@@ -729,16 +751,14 @@ body.vscode-high-contrast #commitTable tr.commit.findCurrentCommit{
 	padding:0 5px;
 }
 .gitRefHeadRemote{
-	border-left:1px solid rgba(128,128,128,0.45);
+	border-left:1px solid var(--git-graph-border);
 	font-style:italic;
 }
 
-#commitTable tr.commit.commitDetailsOpen:hover .gitRef, #commitTable tr.commit.commitDetailsOpen.contextMenuActive .gitRef, #commitTable tr.commit.commitDetailsOpen.dialogActive .gitRef, #commitTable tr.commit.commitDetailsOpen.graphVertexActive .gitRef{
-	background-color:rgba(128,128,128,0.05);
-}
+
 
 .gitRef .contextMenuActive, .gitRef .dialogActive, .gitRef .gitRefName:hover, .gitRef .gitRefHeadRemote:hover{
-	background-color:rgba(128,128,128,0.1);
+	background-color:transparent;
 }
 
 body.branchLabelsAlignedToGraph tr.commit td:first-child .gitRef:last-child{
@@ -781,7 +801,7 @@ body.tagLabelsRightAligned .gitRef.tag{
 	right:0;
 	top:0;
 	padding:4px 132px 4px 0;
-	border-bottom:1px solid rgba(128,128,128,0.5);
+	border-bottom:1px solid var(--git-graph-border);
 	line-height:32px;
 	text-align:center;
 	font-weight:700;
@@ -843,9 +863,9 @@ body.tagLabelsRightAligned .gitRef.tag{
 }
 #findBtn svg, #terminalBtn svg, #settingsBtn svg, #fetchBtn svg, #refreshBtn svg{
 	position:absolute;
-	fill:var(--vscode-editor-foreground);
-	opacity:0.8;
-	stroke:var(--vscode-editor-foreground);
+	fill:var(--vscode-icon-foreground, var(--vscode-foreground));
+	opacity:1;
+	stroke:var(--vscode-icon-foreground, var(--vscode-foreground));
 	stroke-opacity:0.5;
 	stroke-width:0;
 }
@@ -920,14 +940,15 @@ body.tagLabelsRightAligned .gitRef.tag{
 
 .roundedBtn{
 	display:block;
-	background-color:rgba(128,128,128,0.1);
-	border:1px solid rgba(128,128,128,0.5);
+	background-color:var(--vscode-button-secondaryBackground);
+	border:1px solid var(--git-graph-border);
 	font-size:13px;
 	text-align:center;
 	cursor:pointer;
+	color:var(--vscode-button-secondaryForeground);
 }
 .roundedBtn:hover{
-	background-color:rgba(128,128,128,0.2);
+	background-color:var(--vscode-button-secondaryHoverBackground);
 }
 
 a, span.internalUrl{
@@ -957,13 +978,13 @@ input[type=checkbox], input[type=radio]{
 
 .customCheckbox, .customRadio{
 	display:inline-block;
-	background-color:rgba(128,128,128,0.1);
-	border:1px solid rgba(128,128,128,0.5);
+	background-color:var(--vscode-checkbox-background);
+	border:1px solid var(--vscode-checkbox-border);
 	vertical-align:middle;
 }
 
 label:hover > .customCheckbox, label:hover > .customRadio{
-	background-color:rgba(128,128,128,0.2);
+	background-color:var(--vscode-checkbox-background);
 }
 
 .customCheckbox:after, .customRadio:after{
@@ -988,7 +1009,7 @@ label > input[type=checkbox]:checked ~ .customCheckbox:after{
 	top:2px;
 	width:3px;
 	height:7px;
-	border:solid var(--vscode-editor-foreground);
+	border:solid var(--vscode-checkbox-foreground);
 	border-width:0 2px 2px 0;
 	transform:rotate(45deg);
 }
@@ -1010,7 +1031,7 @@ label > input[type=radio]:checked ~ .customRadio:after{
 	top:4px;
 	width:5px;
 	height:5px;
-	background-color:var(--vscode-editor-foreground);
+	background-color:var(--vscode-checkbox-foreground);
 	border-radius:2.5px;
 }
 
@@ -1020,4 +1041,20 @@ label > input[type=radio]:checked ~ .customRadio:after{
 #commitGraph, #commitTable th, #commitTable td, .gitRef, #loadingHeader, .unselectable, .roundedBtn, #controls label{
 	-webkit-user-select:none;
 	user-select:none;
+}
+/* Native action states and keyboard focus */
+:is(#findBtn, #terminalBtn, #settingsBtn, #fetchBtn, #refreshBtn, .cdvControlBtn):hover{
+	background-color:var(--vscode-toolbar-hoverBackground);
+	outline:1px solid var(--vscode-toolbar-hoverOutline, transparent);
+	border-radius:3px;
+}
+:is(#findBtn, #terminalBtn, #settingsBtn, #fetchBtn, #refreshBtn, .cdvControlBtn):active{
+	background-color:var(--vscode-toolbar-activeBackground);
+}
+#controls input:focus-visible ~ .customCheckbox{
+	outline:1px solid var(--vscode-focusBorder);
+	outline-offset:2px;
+}
+#commitTable tr.commit.commitDetailsOpen{
+	color:var(--vscode-list-inactiveSelectionForeground, var(--vscode-foreground));
 }

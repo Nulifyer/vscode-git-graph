@@ -11,7 +11,7 @@
 	-webkit-user-select:none;
 	user-select:none;
 }
-body.vscode-high-contrast .contextMenu{
+:is(body.vscode-high-contrast, body.vscode-high-contrast-light) .contextMenu{
 	outline:1px solid var(--vscode-menu-border, transparent);
 	outline-offset:-1px;
 }
@@ -30,7 +30,7 @@ body.vscode-high-contrast .contextMenu{
 	background-color:var(--vscode-menu-selectionBackground, var(--vscode-menu-background));
 	color:var(--vscode-menu-selectionForeground, var(--vscode-menu-foreground));
 }
-body.vscode-high-contrast .contextMenu li.contextMenuItem:hover{
+:is(body.vscode-high-contrast, body.vscode-high-contrast-light) .contextMenu li.contextMenuItem:hover{
 	outline:1px solid var(--vscode-menu-selectionBorder, transparent);
 	outline-offset:-2px;
 }

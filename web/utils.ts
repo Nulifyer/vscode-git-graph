@@ -470,7 +470,7 @@ function observeElemScroll(id: string, initialScrollTop: number, onScroll: (scro
 	const elem = document.getElementById(id);
 	if (elem === null) return;
 
-	let timeout: NodeJS.Timer | null = null;
+	let timeout: ReturnType<typeof setTimeout> | null = null;
 	elem.scroll(0, initialScrollTop);
 	elem.addEventListener('scroll', () => {
 		const elem = document.getElementById(id);

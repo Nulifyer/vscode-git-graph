@@ -3,7 +3,7 @@ jest.mock('vscode', () => vscode, { virtual: true });
 jest.mock('../src/dataSource');
 jest.mock('../src/logger');
 
-import * as path from 'path';
+import path = require('path');
 import { ConfigurationChangeEvent } from 'vscode';
 import { DataSource } from '../src/dataSource';
 import { DiffDocProvider, DiffSide, decodeDiffDocUri, encodeDiffDocUri } from '../src/diffDocProvider';
@@ -132,7 +132,7 @@ describe('DiffDocProvider', () => {
 
 		// Assert
 		expect(docContents).toBe('');
-		expect(vscode.window.showErrorMessage).toBeCalledWith('Unable to retrieve file: error-message');
+		expect(vscode.window.showErrorMessage).toHaveBeenCalledWith('Unable to retrieve file: error-message');
 
 		// Teardown
 		diffDocProvider.dispose();

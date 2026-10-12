@@ -1388,8 +1388,8 @@ export type Writeable<T> = { -readonly [K in keyof T]: T[K] };
 export type DeepReadonly<T> = T extends PrimitiveTypes
 	? T
 	: T extends (Array<infer U> | ReadonlyArray<infer U>)
-	? ReadonlyArray<DeepReadonly<U>>
-	: { readonly [K in keyof T]: DeepReadonly<T[K]> };
+		? ReadonlyArray<DeepReadonly<U>>
+		: { readonly [K in keyof T]: DeepReadonly<T[K]> };
 
 /**
  * Make all properties in T recursively writeable
@@ -1397,5 +1397,5 @@ export type DeepReadonly<T> = T extends PrimitiveTypes
 export type DeepWriteable<T> = T extends PrimitiveTypes
 	? T
 	: T extends (Array<infer U> | ReadonlyArray<infer U>)
-	? Array<DeepWriteable<U>>
-	: { -readonly [K in keyof T]: DeepWriteable<T[K]> };
+		? Array<DeepWriteable<U>>
+		: { -readonly [K in keyof T]: DeepWriteable<T[K]> };

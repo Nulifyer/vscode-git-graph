@@ -1,7 +1,6 @@
 import * as crypto from 'crypto';
 import * as fs from 'fs';
 import * as https from 'https';
-import * as url from 'url';
 import { DataSource } from './dataSource';
 import { ExtensionState } from './extensionState';
 import { Logger } from './logger';
@@ -21,7 +20,7 @@ export class AvatarManager extends Disposable {
 	private avatars: AvatarCache;
 	private queue: AvatarRequestQueue;
 	private remoteSourceCache: { [repo: string]: RemoteSource } = {};
-	private interval: NodeJS.Timer | null = null;
+	private interval: NodeJS.Timeout | null = null;
 
 	private githubTimeout: number = 0;
 	private gitLabTimeout: number = 0;
@@ -243,7 +242,9 @@ export class AvatarManager extends Disposable {
 				if (res.statusCode === 200) { // Success
 					let commit: any = JSON.parse(respBody);
 					if (commit.author && commit.author.avatar_url) { // Avatar url found
-						let img = await this.downloadAvatarImage(avatarRequest.email, commit.author.avatar_url + '&size=162');
+						const avatarUrl = new URL(commit.author.avatar_url);
+						avatarUrl.searchParams.set('size', '162');
+						let img = await this.downloadAvatarImage(avatarRequest.email, avatarUrl.toString());
 						if (img !== null) {
 							this.saveAvatar(avatarRequest.email, img, false);
 						} else {
@@ -298,7 +299,7 @@ export class AvatarManager extends Disposable {
 
 		https.get({
 			hostname: 'gitlab.com', path: '/api/v4/users?search=' + avatarRequest.email,
-			headers: { 'User-Agent': 'vscode-git-graph', 'Private-Token': 'w87U_3gAxWWaPtFgCcus' }, // Token only has read access
+			headers: { 'User-Agent': 'vscode-git-graph' },
 			agent: false, timeout: 15000
 		}, (res) => {
 			let respBody = '';
@@ -367,7 +368,7 @@ export class AvatarManager extends Disposable {
 	private downloadAvatarImage(email: string, imageUrl: string) {
 		return (new Promise<string | null>((resolve) => {
 			const hash = crypto.createHash('md5').update(email).digest('hex');
-			const imgUrl = url.parse(imageUrl);
+			const imgUrl = new URL(imageUrl);
 
 			let completed = false;
 			const complete = (fileName: string | null = null) => {
@@ -378,7 +379,7 @@ export class AvatarManager extends Disposable {
 			};
 
 			https.get({
-				hostname: imgUrl.hostname, path: imgUrl.path,
+				hostname: imgUrl.hostname, path: imgUrl.pathname + imgUrl.search,
 				headers: { 'User-Agent': 'vscode-git-graph' },
 				agent: false, timeout: 15000
 			}, (res) => {

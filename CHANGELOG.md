@@ -1,5 +1,34 @@
 # Change Log
 
+## 1.31.3: local build
+
+- Pair badge foreground and background colors for inactive branch, remote, tag, and tooltip labels.
+- Preserve label color pairs on selected and hovered rows.
+- Add real-history profiling through automatic webview scrolling. Check inactive label contrast in the host test.
+
+## 1.31.2: local build
+
+- Follow the active VS Code Source Control Graph palette by default. Preserve explicit custom graph palettes.
+- Use workbench theme colors for toolbar icons, reference labels, dropdowns, buttons, borders, and list states.
+- Verify live theme changes in dark, light, both high-contrast themes, and the installed maintainer theme.
+
+## 1.31.1: local build
+
+- Restore the product name to Git Graph. Keep nulifyer as the publisher and maintainer.
+- Expand the VS Code host test to verify rendered history and commit details.
+
+## 1.31.0: local build
+
+- Change the local extension identity to `nulifyer.git-graph` and maintainer to `nulifyer`.
+- Target stable VS Code 1.141.0 and Node 24.
+- Update Bun and dependencies, add a locked build, and migrate lint and test tooling.
+- Repair webview state serialization, Git parser rejection, watcher cleanup, and folder settings.
+- Remove upstream lifecycle telemetry and the inherited GitLab API credential.
+- Validate the graph in the real extension host. Add guidance for host service-worker startup failures.
+
+The earlier entries below describe the original upstream releases. This local build is not published to the Marketplace.
+
+
 ## 1.30.0 - 2021-04-05
 * #395 Added a "Force Fetch" option onto the "Fetch into Local Branch" Dialog, allowing any local branch (that's not checked out) to be reset to the remote branch. This dialog is accessed via the Remote Branch Context Menu.
 * #457 New "View Diff with Working File" action on the File Context Menu in the Commit Details View.
