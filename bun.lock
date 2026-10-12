@@ -3,7 +3,7 @@
   "configVersion": 1,
   "workspaces": {
     "": {
-      "name": "git-graph",
+      "name": "git-graph-modern",
       "dependencies": {
         "iconv-lite": "0.7.3",
       },

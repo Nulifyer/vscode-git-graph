@@ -9,3 +9,4 @@ out
 .vscode-test
 
 *.vsix.sha256
+.env

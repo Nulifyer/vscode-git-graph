@@ -25,7 +25,7 @@ Run `bun run test-extension-host` to test activation, rendered commit rows and g
 
 ## Local installation
 
-Disable `mhutchie.git-graph` before enabling `nulifyer.git-graph`. Both extensions register the same command IDs and settings.
+Disable `mhutchie.git-graph` and the earlier local `nulifyer.git-graph` build before enabling `nulifyer.git-graph-modern`. They share command IDs and settings.
 
 ```bash
 bun run package-and-install
@@ -56,9 +56,9 @@ The GitHub release upload uses the automatic `GITHUB_TOKEN`; it does not need a 
 After committing and pushing a version change, tag that commit and push the tag. Publish the GitHub release to start the workflow. For the current version:
 
 ```bash
-git tag v1.31.3
-git push origin v1.31.3
-gh release create v1.31.3 --verify-tag --generate-notes
+git tag v1.31.4
+git push origin v1.31.4
+gh release create v1.31.4 --verify-tag --generate-notes
 ```
 
 A GitHub prerelease uses the Marketplace prerelease channel. Keep the numeric version and select the GitHub prerelease option. The workflow uses `--pre-release` when packaging and publishing.

@@ -20,3 +20,4 @@ eslint.config.mjs
 .gitignore
 jest.config.js
 *.vsix.sha256
+.env

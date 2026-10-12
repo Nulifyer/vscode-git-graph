@@ -1,6 +1,14 @@
 # Change Log
 
+## 1.31.4 - 2026-10-12
+
+- Use Marketplace identifier `nulifyer.git-graph-modern` because Marketplace rejected the original package name `git-graph`.
+- Keep the visible product name Git Graph and preserve its command IDs and settings.
+- Update installation guidance and the extension settings shortcut for the published identity.
+
 ## 1.31.3 - 2026-10-12
+
+This version has a GitHub VSIX download, but its Marketplace publication failed because the package name was already taken.
 
 - Pair badge foreground and background colors for inactive branch, remote, tag, and tooltip labels.
 - Preserve label color pairs on selected and hovered rows.

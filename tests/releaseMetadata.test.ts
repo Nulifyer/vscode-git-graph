@@ -1,17 +1,17 @@
 import { releaseMetadata } from '../scripts/release-metadata';
 
-const manifest = { name: 'git-graph', publisher: 'nulifyer', version: '1.31.3', packageManager: 'bun@1.4.3' };
+const manifest = { name: 'git-graph-modern', publisher: 'nulifyer', version: '1.31.4', packageManager: 'bun@1.4.3' };
 
 describe('Release metadata guards', () => {
 	it('accepts a matching release tag and derives the VSIX filename', () => {
-		expect(releaseMetadata(manifest, 'v1.31.3').vsix_name).toBe('git-graph-1.31.3.vsix');
+		expect(releaseMetadata(manifest, 'v1.31.4').vsix_name).toBe('git-graph-modern-1.31.4.vsix');
 	});
 
-	it.each(['v1.31.2', '1.31.3', 'v1.31.3-rc.1', 'v1.31.3\nother=value'])('rejects mismatched or malformed tag %s', tag => {
+	it.each(['v1.31.3', '1.31.4', 'v1.31.4-rc.1', 'v1.31.4\nother=value'])('rejects mismatched or malformed tag %s', tag => {
 		expect(() => releaseMetadata(manifest, tag)).toThrow('does not match');
 	});
 
-	it.each(['1.31.3-rc.1', '01.31.3', '1.31', '../1.31.3'])('rejects a version that cannot name a VSIX: %s', version => {
+	it.each(['1.31.4-rc.1', '01.31.4', '1.31', '../1.31.4'])('rejects a version that cannot name a VSIX: %s', version => {
 		expect(() => releaseMetadata({ ...manifest, version })).toThrow('numeric');
 	});
 
