@@ -135,3 +135,20 @@
 :is(body.vscode-high-contrast, body.vscode-high-contrast-light) .findMatch{
 	outline-style:dotted;
 }
+
+/* Keep Find usable when the editor is split into a narrow pane. */
+.findInputGroup { display: inline-block; position: relative; vertical-align: top; }
+.findInputGroup #findCaseSensitive { left: auto; right: 24px; }
+.findInputGroup #findRegex { left: auto; right: 2px; }
+.findWidget[data-error]:after { color: var(--vscode-foreground); background: var(--vscode-editorWidget-background); }
+@media (max-width: 520px) {
+ .findWidget { left: 16px; right: 16px; top: -90px; height: auto; padding: 4px 8px; display: grid; grid-template-columns: auto minmax(0, 1fr) repeat(4, 20px); gap: 4px 6px; line-height: 24px; }
+ .findWidget.active { top: 0; }
+ .findInputGroup { grid-column: 1 / -1; min-width: 0; }
+ .findInputGroup #findInput { width: 100%; height: 28px; margin: 0; box-sizing: border-box; }
+ .findInputGroup .findModifier { top: 4px; }
+ .findWidget #findFuzzy { margin: 0; }
+ .findWidget #findPosition { min-width: 0; margin: 0; }
+ .findWidget :is(#findPrev, #findNext, #findOpenCdv, #findClose) { margin: 2px 0; }
+ .findWidget[data-error]:after { grid-column: 1 / -1; box-sizing: border-box; width: 100%; top: 0; }
+}

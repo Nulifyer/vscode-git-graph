@@ -8,6 +8,7 @@ const repository = path.resolve(process.argv[2]);
 const extensionRoot = path.resolve(process.env['EXTENSION_UNDER_TEST'] ?? path.resolve(import.meta.dir, '..'));
 const output = path.resolve(process.env['HISTORY_PROFILE_OUTPUT'] ?? '.agents/evidence/history-profile.json');
 const increment = Number(process.env['HISTORY_LOAD_INCREMENT'] ?? 100);
+const findQuery = process.env['HISTORY_FIND_QUERY'] ?? '';
 const maximumRows = Number(process.env['HISTORY_MAX_ROWS'] ?? 30000);
 const directory = await mkdtemp(path.join(os.tmpdir(), 'git-graph-perf-'));
 const manifest = JSON.parse(await readFile(path.join(extensionRoot, 'package.json'), 'utf8'));
@@ -54,9 +55,10 @@ const probe = `
       const renderHandlerMs = performance.now() - start;
       requestAnimationFrame(() => requestAnimationFrame(() => {
         const rows = document.querySelectorAll('#commitTable tr.commit');
-        if (rows.length !== event.data.commits.length) return;
+        const loaded = Number(document.getElementById('commitTable').dataset.totalCommits || rows.length);
+        if (loaded !== event.data.commits.length) return;
         const frameReadyAt = performance.now();
-        send({command:'__historyBatch',rows:rows.length,more:event.data.moreCommitsAvailable,refreshId:event.data.refreshId,
+        send({command:'__historyBatch',rows:loaded,renderedRows:rows.length,more:event.data.moreCommitsAvailable,refreshId:event.data.refreshId,
           renderHandlerMs,requestToFramesMs:frameReadyAt-requestStarted,scrollToFramesMs:scrollStarted ? frameReadyAt-scrollStarted : null,
           domElements:document.querySelectorAll('*').length,svgElements:document.querySelectorAll('#commitGraph svg *').length,
           height:document.getElementById('view').scrollHeight,jsHeapBytes:performance.memory?.usedJSHeapSize ?? null,
@@ -74,6 +76,16 @@ const probe = `
       view.scrollTo({top:view.scrollHeight,behavior:'instant'});
     }
     if (event.data.command === '__historyScrollSample') {
+      let findReadyMs=null;
+      if(event.data.findQuery) {
+        const start=performance.now(); document.getElementById('findBtn').click();
+        const input=document.getElementById('findInput'); input.value=event.data.findQuery; input.dispatchEvent(new KeyboardEvent('keyup',{key:'x',bubbles:true}));
+        while(!document.getElementById('findPosition').textContent.includes(' of ')) {
+          if(performance.now()-start>20000) throw new Error('Find query did not produce results');
+          await new Promise(resolve=>setTimeout(resolve,50));
+        }
+        findReadyMs=performance.now()-start;
+      }
       const intervals = [];
       let previous = await new Promise(resolve=>requestAnimationFrame(resolve));
       for (let i=0;i<48;i++) {
@@ -83,15 +95,15 @@ const probe = `
         intervals.push(current-previous); previous=current;
       }
       intervals.sort((a,b)=>a-b);
-      send({command:'__historyScrollResult',rows:document.querySelectorAll('#commitTable tr.commit').length,
-        frameMs:{p50:intervals[24],p95:intervals[45],max:intervals.at(-1)},jsHeapBytes:performance.memory?.usedJSHeapSize ?? null});
+      send({command:'__historyScrollResult',rows:Number(document.getElementById('commitTable').dataset.totalCommits || document.querySelectorAll('#commitTable tr.commit').length),renderedRows:document.querySelectorAll('#commitTable tr.commit').length,
+        findQuery:event.data.findQuery||null,findReadyMs,frameMs:{p50:intervals[24],p95:intervals[45],max:intervals.at(-1)},jsHeapBytes:performance.memory?.usedJSHeapSize ?? null});
     }
     if (event.data.command === '__historyFinish') {
       view.scrollTo({top:view.scrollHeight,behavior:'instant'});
       await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
       const rows=document.querySelectorAll('#commitTable tr.commit');
       const last=rows[rows.length-1].getBoundingClientRect(), bounds=view.getBoundingClientRect();
-      send({command:'__historyFinished',rows:rows.length,atBottom:view.scrollTop+view.clientHeight>=view.scrollHeight-2,
+      send({command:'__historyFinished',rows:Number(document.getElementById('commitTable').dataset.totalCommits || rows.length),renderedRows:rows.length,atBottom:view.scrollTop+view.clientHeight>=view.scrollHeight-2,
         oldestRowVisible:last.top<bounds.bottom && last.bottom>bounds.top,
         moreButtonPresent:!!document.getElementById('loadMoreCommitsBtn'),labels:labels(),height:view.scrollHeight});
     }
@@ -131,7 +143,7 @@ exports.run = async () => {
   const command = async (request,response,timeout=60000) => {
     let result;
     const tap=view.panel.webview.onDidReceiveMessage(message=>{if(message.command===response)result=message;});
-    try {await view.panel.webview.postMessage({command:request});await wait(()=>result,response,timeout);return result;}
+    try {await view.panel.webview.postMessage({command:request,findQuery:request==='__historyScrollSample' && !batches.at(-1).more ? ${JSON.stringify(findQuery)} : ''});await wait(()=>result,response,timeout);return result;}
     finally {tap.dispose();}
   };
   try {

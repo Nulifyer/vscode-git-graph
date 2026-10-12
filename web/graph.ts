@@ -22,6 +22,7 @@ interface PlacedLine {
 	readonly p1: Pixel;
 	readonly p2: Pixel;
 	readonly isCommitted: boolean;
+	readonly dimmed: boolean;
 	readonly lockedFirst: boolean; // TRUE => The line is locked to p1, FALSE => The line is locked to p2
 }
 
@@ -72,12 +73,18 @@ class Branch {
 
 	/* Rendering */
 
-	public draw(svg: SVGElement, config: GG.GraphConfig, expandAt: number) {
+	public draw(svg: SVGElement, config: GG.GraphConfig, expandAt: number, first: number, last: number, highlightFrom: number | null = null) {
 		let colour = config.colours[this.colour % config.colours.length], i, x1, y1, x2, y2, lines: PlacedLine[] = [], curPath = '', d = config.grid.y * (config.style === GG.GraphStyle.Angular ? 0.38 : 0.8), line, nextLine;
 
 		// Convert branch lines into pixel coordinates, respecting expanded commit extensions
-		for (i = 0; i < this.lines.length; i++) {
+		let low = 0, high = this.lines.length;
+		while (low < high) {
+			const mid = (low + high) >>> 1;
+			if (this.lines[mid].p2.y < first - 1) low = mid + 1; else high = mid;
+		}
+		for (i = low; i < this.lines.length; i++) {
 			line = this.lines[i];
+			if (line.p1.y > last + 1) break;
 			x1 = line.p1.x * config.grid.x + config.grid.offsetX; y1 = line.p1.y * config.grid.y + config.grid.offsetY;
 			x2 = line.p2.x * config.grid.x + config.grid.offsetX; y2 = line.p2.y * config.grid.y + config.grid.offsetY;
 
@@ -90,16 +97,16 @@ class Branch {
 					if (x1 === x2) { // The line is vertical, extend the endpoint past the expansion
 						y2 += config.grid.expandY;
 					} else if (line.lockedFirst) { // If the line is locked to the first point, the transition stays in its normal position
-						lines.push({ p1: { x: x1, y: y1 }, p2: { x: x2, y: y2 }, isCommitted: i >= this.numUncommitted, lockedFirst: line.lockedFirst }); // Display the normal transition
-						lines.push({ p1: { x: x2, y: y1 + config.grid.y }, p2: { x: x2, y: y2 + config.grid.expandY }, isCommitted: i >= this.numUncommitted, lockedFirst: line.lockedFirst }); // Extend the line over the expansion from the transition end point
+						lines.push({ p1: { x: x1, y: y1 }, p2: { x: x2, y: y2 }, dimmed: highlightFrom !== null && line.p1.y < highlightFrom, isCommitted: i >= this.numUncommitted, lockedFirst: line.lockedFirst }); // Display the normal transition
+						lines.push({ p1: { x: x2, y: y1 + config.grid.y }, p2: { x: x2, y: y2 + config.grid.expandY }, dimmed: highlightFrom !== null && line.p1.y < highlightFrom, isCommitted: i >= this.numUncommitted, lockedFirst: line.lockedFirst }); // Extend the line over the expansion from the transition end point
 						continue;
 					} else { // If the line is locked to the second point, the transition moves to after the expansion
-						lines.push({ p1: { x: x1, y: y1 }, p2: { x: x1, y: y2 - config.grid.y + config.grid.expandY }, isCommitted: i >= this.numUncommitted, lockedFirst: line.lockedFirst }); // Extend the line over the expansion to the new transition start point
+						lines.push({ p1: { x: x1, y: y1 }, p2: { x: x1, y: y2 - config.grid.y + config.grid.expandY }, dimmed: highlightFrom !== null && line.p1.y < highlightFrom, isCommitted: i >= this.numUncommitted, lockedFirst: line.lockedFirst }); // Extend the line over the expansion to the new transition start point
 						y1 += config.grid.expandY; y2 += config.grid.expandY;
 					}
 				}
 			}
-			lines.push({ p1: { x: x1, y: y1 }, p2: { x: x2, y: y2 }, isCommitted: i >= this.numUncommitted, lockedFirst: line.lockedFirst });
+			lines.push({ p1: { x: x1, y: y1 }, p2: { x: x2, y: y2 }, dimmed: highlightFrom !== null && line.p1.y < highlightFrom, isCommitted: i >= this.numUncommitted, lockedFirst: line.lockedFirst });
 		}
 
 		// Simplify consecutive lines that are straight by removing the 'middle' point
@@ -107,7 +114,7 @@ class Branch {
 		while (i < lines.length - 1) {
 			line = lines[i];
 			nextLine = lines[i + 1];
-			if (line.p1.x === line.p2.x && line.p2.x === nextLine.p1.x && nextLine.p1.x === nextLine.p2.x && line.p2.y === nextLine.p1.y && line.isCommitted === nextLine.isCommitted) {
+			if (line.p1.x === line.p2.x && line.p2.x === nextLine.p1.x && nextLine.p1.x === nextLine.p2.x && line.p2.y === nextLine.p1.y && line.isCommitted === nextLine.isCommitted && line.dimmed === nextLine.dimmed) {
 				line.p2.y = nextLine.p2.y;
 				lines.splice(i + 1, 1);
 			} else {
@@ -122,8 +129,8 @@ class Branch {
 			x2 = line.p2.x; y2 = line.p2.y;
 
 			// If the new point belongs to a different path, render the current path and reset it for the new path
-			if (curPath !== '' && i > 0 && line.isCommitted !== lines[i - 1].isCommitted) {
-				Branch.drawPath(svg, curPath, lines[i - 1].isCommitted, colour, config.uncommittedChanges);
+			if (curPath !== '' && i > 0 && (line.isCommitted !== lines[i - 1].isCommitted || line.dimmed !== lines[i - 1].dimmed)) {
+				Branch.drawPath(svg, curPath, lines[i - 1].isCommitted, colour, config.uncommittedChanges, lines[i - 1].dimmed);
 				curPath = '';
 			}
 
@@ -142,13 +149,14 @@ class Branch {
 		}
 
 		if (curPath !== '') {
-			Branch.drawPath(svg, curPath, lines[lines.length - 1].isCommitted, colour, config.uncommittedChanges); // Draw the remaining path
+			Branch.drawPath(svg, curPath, lines[lines.length - 1].isCommitted, colour, config.uncommittedChanges, lines[lines.length - 1].dimmed); // Draw the remaining path
 		}
 	}
 
-	private static drawPath(svg: SVGElement, path: string, isCommitted: boolean, colour: string, uncommittedChanges: GG.GraphUncommittedChangesStyle) {
+	private static drawPath(svg: SVGElement, path: string, isCommitted: boolean, colour: string, uncommittedChanges: GG.GraphUncommittedChangesStyle, dimmed: boolean) {
 		const shadow = svg.appendChild(document.createElementNS(SVG_NAMESPACE, 'path')), line = svg.appendChild(document.createElementNS(SVG_NAMESPACE, 'path'));
 		shadow.setAttribute('class', 'shadow');
+		if (dimmed) { shadow.style.opacity = '.25'; line.style.opacity = '.25'; }
 		shadow.setAttribute('d', path);
 		line.setAttribute('class', 'line');
 		line.setAttribute('d', path);
@@ -176,7 +184,8 @@ class Vertex {
 	private nextX: number = 0;
 	private connections: UnavailablePoint[] = [];
 
-	constructor(id: number, isStash: boolean) {
+	constructor(id: number, isStash: boolean, minimumLane = 0) {
+		this.nextX = minimumLane;
 		this.id = id;
 		this.isStash = isStash;
 	}
@@ -260,17 +269,15 @@ class Vertex {
 
 	public getPointConnectingTo(vertex: VertexOrNull, onBranch: Branch) {
 		for (let i = 0; i < this.connections.length; i++) {
-			if (this.connections[i].connectsTo === vertex && this.connections[i].onBranch === onBranch) {
+			if (this.connections[i]?.connectsTo === vertex && this.connections[i].onBranch === onBranch) {
 				return { x: i, y: this.id };
 			}
 		}
 		return null;
 	}
 	public registerUnavailablePoint(x: number, connectsToVertex: VertexOrNull, onBranch: Branch) {
-		if (x === this.nextX) {
-			this.nextX = x + 1;
-			this.connections[x] = { connectsTo: connectsToVertex, onBranch: onBranch };
-		}
+		if (!this.connections[x]) this.connections[x] = { connectsTo: connectsToVertex, onBranch: onBranch };
+		if (x === this.nextX) { do { this.nextX++; } while (this.connections[this.nextX]); }
 	}
 
 
@@ -356,6 +363,9 @@ class Graph {
 	private readonly gradientStop2: SVGStopElement;
 	private group: SVGGElement | null = null;
 
+	private widthCache: number | null = null;
+	private pinnedLanes = new Map<number, number>();
+	private pinnedCount = 0;
 	private tooltipId: number = -1;
 	private tooltipElem: HTMLElement | null = null;
 	private tooltipTimeout: ReturnType<typeof setTimeout> | null = null;
@@ -390,20 +400,23 @@ class Graph {
 
 	/* Graph Operations */
 
-	public loadCommits(commits: ReadonlyArray<GG.GitCommit>, commitHead: string | null, commitLookup: { [hash: string]: number }, onlyFollowFirstParent: boolean) {
+	public loadCommits(commits: ReadonlyArray<GG.GitCommit>, commitHead: string | null, commitLookup: { [hash: string]: number }, onlyFollowFirstParent: boolean, pinnedBranches: readonly string[] = []) {
+		const pinned = pinnedHistoryLanes(commits, pinnedBranches);
+		this.pinnedLanes = pinned.lanes; this.pinnedCount = pinned.count;
 		this.commits = commits;
 		this.commitHead = commitHead;
 		this.commitLookup = commitLookup;
 		this.onlyFollowFirstParent = onlyFollowFirstParent;
 		this.vertices = [];
 		this.branches = [];
-		this.availableColours = [];
+		this.availableColours = Array(this.pinnedCount).fill(0);
+		this.widthCache = null;
 		if (commits.length === 0) return;
 
 		const nullVertex = new Vertex(NULL_VERTEX_ID, false);
 		let i: number, j: number;
 		for (i = 0; i < commits.length; i++) {
-			this.vertices.push(new Vertex(i, commits[i].stash !== null));
+			this.vertices.push(new Vertex(i, commits[i].stash !== null, this.pinnedCount));
 		}
 		for (i = 0; i < commits.length; i++) {
 			for (j = 0; j < commits[i].parents.length; j++) {
@@ -439,18 +452,25 @@ class Graph {
 		}
 	}
 
-	public render(expandedCommit: ExpandedCommit | null) {
+	public render(expandedCommit: ExpandedCommit | null, first = 0, last = this.vertices.length, highlighted: ReadonlySet<string> = new Set()) {
 		this.expandedCommitIndex = expandedCommit !== null ? expandedCommit.index : -1;
 		let group = document.createElementNS(SVG_NAMESPACE, 'g'), i, contentWidth = this.getContentWidth();
 		group.setAttribute('mask', 'url(#GraphMask)');
 
+		const highlightedBranches = new Map<Branch, number>();
+		if (highlighted.size) for (i = 0; i < this.vertices.length; i++) {
+			const branch = this.vertices[i].getBranch();
+			if (branch && highlighted.has(this.commits[i].hash) && !highlightedBranches.has(branch)) highlightedBranches.set(branch, i);
+		}
 		for (i = 0; i < this.branches.length; i++) {
-			this.branches[i].draw(group, this.config, this.expandedCommitIndex);
+			this.branches[i].draw(group, this.config, this.expandedCommitIndex, first, last, highlighted.size ? highlightedBranches.get(this.branches[i]) ?? Infinity : null);
 		}
 
 		const overListener = (e: MouseEvent) => this.vertexOver(e), outListener = (e: MouseEvent) => this.vertexOut(e);
-		for (i = 0; i < this.vertices.length; i++) {
-			this.vertices[i].draw(group, this.config, expandedCommit !== null && i > expandedCommit.index, overListener, outListener);
+		for (i = Math.max(0, first); i < Math.min(last, this.vertices.length); i++) {
+			const target = document.createElementNS(SVG_NAMESPACE, 'g');
+			if (highlighted.size && !highlighted.has(this.commits[i].hash)) target.style.opacity = '.25';
+			this.vertices[i].draw(target, this.config, expandedCommit !== null && i > expandedCommit.index, overListener, outListener); group.append(target);
 		}
 
 		if (this.group !== null) this.svg.removeChild(this.group);
@@ -458,6 +478,13 @@ class Graph {
 		this.group = group;
 		this.setDimensions(contentWidth, this.getHeight(expandedCommit));
 		this.applyMaxWidth(contentWidth);
+		const y = this.config.grid.offsetY - this.config.grid.y / 2 + Math.max(0, first) * this.config.grid.y + (this.expandedCommitIndex >= 0 && first > this.expandedCommitIndex ? this.config.grid.expandY : 0);
+		const end = this.config.grid.offsetY + Math.min(last, this.vertices.length) * this.config.grid.y + (this.expandedCommitIndex >= 0 && last > this.expandedCommitIndex ? this.config.grid.expandY : 0);
+		this.svg.style.position = 'absolute';
+		const top = Math.max(0, y - 12), height = Math.max(0, Math.min(this.getHeight(expandedCommit), end + 12) - top);
+		this.svg.style.top = top + 'px';
+		this.svg.setAttribute('height', height.toString());
+		this.svg.setAttribute('viewBox', '0 ' + top + ' ' + this.svg.getAttribute('width') + ' ' + Math.max(1, height));
 		this.closeTooltip();
 	}
 
@@ -465,12 +492,13 @@ class Graph {
 	/* Get */
 
 	public getContentWidth() {
+		if (this.widthCache !== null) return this.widthCache;
 		let x = 0, i, p;
 		for (i = 0; i < this.vertices.length; i++) {
 			p = this.vertices[i].getNextPoint();
 			if (p.x > x) x = p.x;
 		}
-		return 2 * this.config.grid.offsetX + (x - 1) * this.config.grid.x;
+		return this.widthCache = 2 * this.config.grid.offsetX + (x - 1) * this.config.grid.x;
 	}
 
 	public getHeight(expandedCommit: ExpandedCommit | null) {
@@ -705,7 +733,7 @@ class Graph {
 	private determinePath(startAt: number) {
 		let i = startAt;
 		let vertex = this.vertices[i], parentVertex = this.vertices[i].getNextParent(), curVertex;
-		let lastPoint = vertex.isNotOnBranch() ? vertex.getNextPoint() : vertex.getPoint(), curPoint;
+		let lastPoint = vertex.isNotOnBranch() ? this.preferredPoint(vertex) : vertex.getPoint(), curPoint;
 
 		if (parentVertex !== null && parentVertex.id !== NULL_VERTEX_ID && vertex.isMerge() && !vertex.isNotOnBranch() && !parentVertex.isNotOnBranch()) {
 			// Branch is a merge between two vertices already on branches
@@ -734,7 +762,7 @@ class Graph {
 			vertex.registerUnavailablePoint(lastPoint.x, vertex, branch);
 			for (i = startAt + 1; i < this.vertices.length; i++) {
 				curVertex = this.vertices[i];
-				curPoint = parentVertex === curVertex && !parentVertex.isNotOnBranch() ? curVertex.getPoint() : curVertex.getNextPoint();
+				curPoint = parentVertex === curVertex ? !parentVertex.isNotOnBranch() ? curVertex.getPoint() : this.preferredPoint(curVertex) : curVertex.getNextPoint();
 				branch.addLine(lastPoint, curPoint, vertex.getIsCommitted(), lastPoint.x < curPoint.x);
 				curVertex.registerUnavailablePoint(curPoint.x, parentVertex, branch);
 				lastPoint = curPoint;
@@ -762,8 +790,15 @@ class Graph {
 		}
 	}
 
+	private preferredPoint(vertex: Vertex): Point {
+		const lane = this.pinnedLanes.get(vertex.id);
+		return lane === undefined ? vertex.getNextPoint() : { x: lane, y: vertex.id };
+	}
+
 	private getAvailableColour(startAt: number) {
-		for (let i = 0; i < this.availableColours.length; i++) {
+		const pinned = this.pinnedLanes.get(startAt);
+		if (pinned !== undefined) return pinned;
+		for (let i = this.pinnedCount; i < this.availableColours.length; i++) {
 			if (startAt > this.availableColours[i]) {
 				return i;
 			}

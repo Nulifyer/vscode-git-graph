@@ -1,7 +1,7 @@
 {
 	"name": "git-graph-modern",
 	"displayName": "Git Graph Modern",
-	"version": "1.31.5",
+	"version": "1.32.2",
 	"publisher": "nulifyer",
 	"author": {
 		"name": "nulifyer",
@@ -1492,9 +1492,11 @@
 		"test": "jest --runInBand",
 		"test-and-report-coverage": "jest --runInBand --coverage",
 		"check": "bun run compile && bun run test",
-		"test-extension-host": "bun run compile && bun scripts/test-extension-host.ts"
+		"test-extension-host": "bun run compile && bun scripts/test-extension-host.ts",
+		"test-history-workflows": "bun run compile && bun scripts/test-history-workflows.ts"
 	},
 	"dependencies": {
+		"fzf": "0.5.2",
 		"iconv-lite": "0.7.3"
 	},
 	"devDependencies": {
@@ -1528,5 +1530,8 @@
 	},
 	"bugs": {
 		"url": "https://github.com/Nulifyer/vscode-git-graph/issues"
+	},
+	"patchedDependencies": {
+		"fzf@0.5.2": "patches/fzf@0.5.2.patch"
 	}
 }

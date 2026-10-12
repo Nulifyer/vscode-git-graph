@@ -65,6 +65,8 @@ export class ExtensionState extends Disposable {
 	private readonly globalState: vscode.Memento;
 	private readonly workspaceState: vscode.Memento;
 	private readonly globalStoragePath: string;
+
+	public getGlobalStoragePath() { return this.globalStoragePath; }
 	private avatarStorageAvailable: boolean = false;
 
 	/**

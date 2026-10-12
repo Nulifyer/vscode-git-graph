@@ -1815,11 +1815,15 @@ export class DataSource extends Disposable {
 	 * @param resolveValue A callback invoked to resolve the data from `stdout` and `stderr`.
 	 * @param ignoreExitCode Ignore the exit code returned by Git (default: `FALSE`).
 	 */
-	private async _spawnGit<T>(args: string[], repo: string, resolveValue: { (stdout: Buffer, stderr: string): T }, ignoreExitCode: boolean = false) {
+	public executeGit(repo: string, args: string[], env: NodeJS.ProcessEnv = {}) {
+		return this._spawnGit(args, repo, stdout => stdout.toString(), false, { ...env, GGM_GIT_EXECUTABLE: this.gitExecutable?.path });
+	}
+
+	private async _spawnGit<T>(args: string[], repo: string, resolveValue: { (stdout: Buffer, stderr: string): T }, ignoreExitCode: boolean = false, env: NodeJS.ProcessEnv = {}) {
 		if (this.gitExecutable === null) return Promise.reject(UNABLE_TO_FIND_GIT_MSG);
 		const output = resolveSpawnOutput(cp.spawn(this.gitExecutable.path, args, {
 			cwd: repo,
-			env: Object.assign({}, process.env, this.askpassEnv)
+			env: Object.assign({}, process.env, this.askpassEnv, env)
 		}));
 		this.logger.logCmd('git', args);
 		return output.then(([status, stdout, stderr]) => {

@@ -1058,3 +1058,111 @@ label > input[type=radio]:checked ~ .customRadio:after{
 #commitTable tr.commit.commitDetailsOpen{
 	color:var(--vscode-list-inactiveSelectionForeground, var(--vscode-foreground));
 }
+
+#commitTable tr.viewportSpacer td{padding:0;line-height:0;border:0;}
+#commitTable tr.commit:focus-visible{outline:1px solid var(--vscode-focusBorder);outline-offset:-1px;}
+
+
+/* Workbench controls follow VS Code action bars, Quick Pick lists and dialogs. */
+#controls { --workflow-toolbar-space: 196px; padding-right: var(--workflow-toolbar-space); }
+#controls .workflowToolbar { position: absolute; right: 8px; top: 8px; display: flex; align-items: center; gap: 2px; height: 24px; color: var(--vscode-icon-foreground, var(--vscode-foreground)); }
+#controls .workflowToolbar > :is(#findBtn, #terminalBtn, #settingsBtn, #fetchBtn, #refreshBtn), .workflowIcon { position: static; display: inline-flex; align-items: center; justify-content: center; flex: 0 0 24px; width: 24px; height: 24px; margin: 0; padding: 3px; box-sizing: border-box; border: 0; border-radius: 3px; background: transparent; color: var(--vscode-icon-foreground, var(--vscode-foreground)); cursor: pointer; }
+#controls .workflowToolbar #fetchBtn { display: none; }
+#controls.fetchSupported { --workflow-toolbar-space: 222px; }
+#controls.fetchSupported .workflowToolbar #fetchBtn { display: inline-flex; }
+#controls .workflowToolbar svg, .workflowIcon svg { position: static; width: 16px; height: 16px; fill: currentColor; stroke: none; flex-shrink: 0; }
+#controls .workflowToolbar > :hover, .workflowIcon:hover { background-color: var(--vscode-toolbar-hoverBackground); }
+.workflowIcon:focus-visible, #controls .workflowToolbar > :focus-visible { outline: 1px solid var(--vscode-focusBorder); outline-offset: -1px; }
+.workflowMenu { min-width: 220px; font-weight: normal; font-size: 13px; }
+
+.modernDialog { width: 440px; max-width: calc(100vw - 32px); max-height: calc(100vh - 64px); margin: auto; padding: 0; box-sizing: border-box; border: 1px solid var(--vscode-widget-border, var(--vscode-contrastBorder, var(--git-graph-border))); border-radius: 4px; box-shadow: 0 8px 32px var(--vscode-widget-shadow); background: var(--vscode-editorWidget-background, var(--vscode-editor-background)); color: var(--vscode-foreground); font: 400 var(--vscode-font-size, 13px)/1.5 var(--vscode-font-family, system-ui); text-align: left; }
+.modernDialog[open] { display: flex; flex-direction: column; }
+.modernDialog::backdrop { background: rgb(0 0 0 / 24%); }
+.modernDialog[data-view=search], .modernDialog[data-view=rebase] { width: 680px; }
+.modernDialog[data-view=worktrees] { width: 600px; }
+.workflowHeader { flex-shrink: 0; display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; padding: 16px 16px 12px; border-bottom: 1px solid var(--git-graph-border); }
+.workflowHeader h2 { font-size: 14px; line-height: 22px; font-weight: 600; margin: 0; }
+.workflowHeader p { font-size: 12px; color: var(--vscode-descriptionForeground); margin: 3px 0 0; }
+.workflowBody { padding: 16px; min-height: 0; overflow: auto; }
+.workflowFooter { display: flex; flex: 0 0 auto; justify-content: flex-end; align-items: center; gap: 8px; padding: 12px 16px; border-top: 1px solid var(--git-graph-border); }
+.workflowButton { display: inline-flex; justify-content: center; align-items: center; box-sizing: border-box; min-height: 26px; padding: 3px 12px; border: 1px solid var(--vscode-button-border, transparent); border-radius: 2px; font: inherit; line-height: 18px; cursor: pointer; background: var(--vscode-button-secondaryBackground, var(--vscode-dropdown-background)); color: var(--vscode-button-secondaryForeground, var(--vscode-foreground)); }
+.workflowButton:hover { background: var(--vscode-button-secondaryHoverBackground, var(--vscode-list-hoverBackground)); }
+.workflowButton.primary { background: var(--vscode-button-background); color: var(--vscode-button-foreground); }
+.workflowButton.primary:hover { background: var(--vscode-button-hoverBackground, var(--vscode-button-background)); }
+.workflowButton.text { background: transparent; color: var(--vscode-textLink-foreground); padding-inline: 4px; }
+.modernDialog :is(button, input, select, textarea):focus-visible { outline: 1px solid var(--vscode-focusBorder); outline-offset: -1px; }
+.modernDialog :is(button, select):disabled, .operationBanner button:disabled { opacity: .5; cursor: default; }
+.modernDialog form { margin: 0; }
+.modernDialog label, .workflowField > label { display: flex; flex-direction: column; gap: 4px; font-weight: 400; font-size: 13px; line-height: 20px; }
+.modernDialog input:not([type=checkbox]):not([type=hidden]), .modernDialog select, .modernDialog textarea { box-sizing: border-box; width: 100%; min-width: 0; min-height: 28px; margin: 0; padding: 4px 7px; border: 1px solid var(--vscode-input-border, var(--vscode-widget-border, transparent)); border-radius: 2px; color: var(--vscode-input-foreground); background: var(--vscode-input-background); font: inherit; line-height: 18px; }
+.modernDialog select { color: var(--vscode-dropdown-foreground); background: var(--vscode-dropdown-background); border-color: var(--vscode-dropdown-border, var(--vscode-input-border, transparent)); }
+.modernDialog input::placeholder, .modernDialog textarea::placeholder { color: var(--vscode-input-placeholderForeground); }
+.modernDialog textarea { min-height: 76px; resize: vertical; }
+.modernDialog .workflowCheck { position: relative; flex-direction: row; align-items: center; gap: 8px; cursor: pointer; }
+.modernDialog .workflowCheck > input[type=checkbox] { width: 16px; height: 16px; left: 0; top: 2px; margin: 0; }
+.workflowCheck .customCheckbox { width: 16px; height: 16px; flex: 0 0 16px; box-sizing: border-box; }
+.workflowCheck input:focus-visible + .customCheckbox { outline: 1px solid var(--vscode-focusBorder); }
+.workflowHint { margin: 5px 0 0; font-size: 12px; line-height: 18px; color: var(--vscode-descriptionForeground); }
+.layoutForm > .workflowHint { margin: 4px 0 20px 24px; }
+.workflowField { display: flex; flex-direction: column; gap: 6px; }
+.pinnedBranchList { display: flex; flex-direction: column; gap: 2px; }
+.pinnedBranchList:empty { display: none; }
+.pinnedBranchRow { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 28px; padding: 2px 4px 2px 8px; background: var(--vscode-list-hoverBackground); }
+.pinnedBranchRow > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.workflowStatus { flex: 0 0 auto; padding: 8px 16px; font-size: 12px; line-height: 18px; color: var(--vscode-descriptionForeground); white-space: pre-wrap; }
+.workflowStatus:empty { display: none; }
+.workflowStatus[data-kind=error], .operationBanner[data-kind=error] { color: var(--vscode-foreground); background: var(--vscode-editorWidget-background, var(--vscode-editor-background)); border-left: 3px solid var(--vscode-inputValidation-errorBorder, var(--vscode-errorForeground)); }
+.workflowConfirmation { margin: 0; padding: 20px; white-space: pre-wrap; }
+
+.searchQueryRow { display: grid; grid-template-columns: minmax(0,1fr) 118px auto; gap: 8px; align-items: end; }
+.searchQueryRow > .workflowButton { height: 28px; }
+.searchFilters { margin-top: 12px; }
+.searchFilters summary { cursor: pointer; color: var(--vscode-descriptionForeground); font-size: 12px; }
+.workflowFields { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding-top: 12px; }
+.historySearchForm + .workflowHint { margin-top: 12px; }
+.historyResults { margin: 12px -16px 0; max-height: 360px; overflow: auto; border-top: 1px solid var(--git-graph-border); }
+.historyResults:empty { display: none; }
+.historyResultButton { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 2px 12px; width: 100%; padding: 8px 16px; border: 0; border-radius: 0; background: transparent; color: var(--vscode-foreground); font: inherit; text-align: left; cursor: pointer; }
+.historyResultButton:hover, .historyResultButton:focus-visible { background: var(--vscode-list-hoverBackground); }
+.historyResultSubject { min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.historyResultHash, .historyResultMeta { font-size: 11px; color: var(--vscode-descriptionForeground); }
+.historyResultMeta { grid-column: 1 / -1; }
+.historyPagination { display: flex; justify-content: space-between; padding: 8px 16px; border-top: 1px solid var(--git-graph-border); }
+.historyPagination:empty { display: none; }
+.worktreeRow { display: flex; align-items: center; gap: 6px; padding: 10px 0; border-bottom: 1px solid var(--git-graph-border); }
+.worktreeInfo { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 2px 8px; flex: 1; min-width: 0; }
+.worktreeInfo strong { font-weight: 500; }
+.worktreeInfo > span:not(.workflowBadge) { grid-row: 2; grid-column: 1 / -1; font-size: 12px; color: var(--vscode-descriptionForeground); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.workflowBadge { grid-column: 2; grid-row: 1; padding: 0 5px; font-size: 11px; color: var(--vscode-badge-foreground); background: var(--vscode-badge-background); border-radius: 2px; }
+.worktreeCreateForm { padding-top: 16px; }
+.worktreeCreateForm h3 { margin: 0; font-size: 13px; font-weight: 600; }
+.worktreeCreateForm .workflowButton { margin-top: 12px; }
+.rebaseBaseForm { display: flex; align-items: flex-end; gap: 8px; margin-bottom: 12px !important; }
+.rebaseBaseForm label { flex: 1; }
+.rebaseBaseForm button { min-height: 28px; }
+.rebaseRow { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; min-height: 34px; padding: 4px 0; border-top: 1px solid var(--git-graph-border); }
+.modernDialog .rebaseRow select { width: 88px; min-height: 26px; padding: 2px 4px; }
+.rebaseSubject { flex: 1; min-width: 100px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rebaseHash { color: var(--vscode-descriptionForeground); font-size: 11px; }
+.rebaseRow textarea { flex: 0 0 100%; margin: 4px 0; }
+.operationBanner { margin-right: calc(-1 * var(--workflow-toolbar-space)); padding: 8px 12px; background: var(--vscode-editorWidget-background, var(--vscode-editor-background)); border-top: 1px solid var(--git-graph-border); text-align: left; font-size: 12px; font-weight: 400; line-height: 20px; }
+.operationBanner[hidden] { display: none; }
+.operationBanner p { margin: 0 0 6px; }
+.operationBanner .workflowButton { margin-right: 6px; }
+.conflictFileRow { display: flex; gap: 6px; align-items: center; margin: 4px 0; }
+.conflictFileRow > span { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+@media (max-width: 620px) { .searchQueryRow { grid-template-columns: minmax(0,1fr) 110px; } .searchQueryRow > button { grid-column: 1 / -1; } .workflowFields { grid-template-columns: 1fr; } }
+
+/* Long references retain their full tooltip and context actions. */
+.gitRef { max-width: 240px; }
+.gitRef .gitRefName, .gitRef .gitTagName { max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: inline-block; vertical-align: bottom; }
+.pathMuted { opacity: .45; }
+.pathHighlight td { background-color: var(--vscode-list-hoverBackground); }
+.fuzzyMatch { color: var(--vscode-list-highlightForeground); font-weight: bold; }
+.contextMenuItem:focus, tr.commit:focus { outline: 1px solid var(--vscode-focusBorder); outline-offset: -1px; }
+.expandHistoryGroup { margin-left: 8px; padding: 0 5px; border: 0; background: transparent; color: var(--vscode-textLink-foreground); font: inherit; font-size: 12px; cursor: pointer; }
+
+#findFuzzy { height: 22px; padding: 0 4px; border: 1px solid transparent; border-radius: 2px; background: transparent; color: var(--vscode-icon-foreground); font: inherit; line-height: 20px; cursor: pointer; }
+#findFuzzy[aria-pressed=true] { background: var(--vscode-inputOption-activeBackground); color: var(--vscode-inputOption-activeForeground); border-color: var(--vscode-inputOption-activeBorder); }
+
+@media (max-width: 800px) { .conflictFileRow { flex-wrap: wrap; } .conflictFileRow > span { flex: 0 0 100%; white-space: normal; overflow-wrap: anywhere; } }

@@ -1,4 +1,4 @@
-import { cp, mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { cp, mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { runTests } from '@vscode/test-electron';
@@ -9,6 +9,8 @@ const extensionRoot = path.resolve(process.env['EXTENSION_UNDER_TEST'] ?? root);
 const directory = await mkdtemp(path.join(os.tmpdir(), 'git-graph-host-'));
 const repository = path.join(directory, 'repository');
 const profile = path.join(directory, 'profile');
+const previewDirectory = process.env['VSCODE_TEST_UI_PREVIEW_DIR'] ? path.resolve(process.env['VSCODE_TEST_UI_PREVIEW_DIR']) : null;
+const previewVariables = previewDirectory ? [...new Set((await readFile(path.join(extensionRoot, 'media', 'out.min.css'), 'utf8')).match(/--vscode-[\w-]+/g))] : [];
 const themeNames = ['Dark Modern', 'Light Modern', 'Default High Contrast', 'Default High Contrast Light'];
 const customPalette: string[] | undefined = process.env['VSCODE_TEST_GRAPH_COLOURS']
 	? JSON.parse(process.env['VSCODE_TEST_GRAPH_COLOURS']) : undefined;
@@ -43,6 +45,36 @@ const webviewProbe = `
     return (Math.max(a,b)+.05)/(Math.min(a,b)+.05);
   };
   window.addEventListener('message', event => {
+    if(!api || event.data.command !== '__hostDialogSample') return;
+    document.getElementById('workflowMoreBtn').click();
+    [...document.querySelectorAll('[role=menuitem]')].find(item=>item.textContent==='Layout…').click();
+    const dialog=document.querySelector('dialog[open]'), primary=dialog.querySelector('.workflowButton.primary'), checkbox=dialog.querySelector('[name=collapsed]'), indicator=dialog.querySelector('.customCheckbox'), picker=dialog.querySelector('#pinnedBranchPicker');
+    const bounds=dialog.getBoundingClientRect(), style=getComputedStyle(primary);
+    const before=checkbox.checked; dialog.querySelector('.workflowCheck').click(); const toggled=checkbox.checked!==before; dialog.querySelector('.workflowCheck').click();
+    const layoutResult={theme:document.body.dataset.vscodeThemeId,width:bounds.width,centered:Math.abs(bounds.left+bounds.width/2-innerWidth/2)<1 && Math.abs(bounds.top+bounds.height/2-innerHeight/2)<1,
+      primaryBackground:style.backgroundColor,expectedPrimaryBackground:color('var(--vscode-button-background)'),primaryForeground:style.color,expectedPrimaryForeground:color('var(--vscode-button-foreground)'),
+      checkboxWidth:checkbox.getBoundingClientRect().width,indicatorWidth:indicator.getBoundingClientRect().width,toggled,pickerWidth:picker.getBoundingClientRect().width,
+      noTextarea:!dialog.querySelector('textarea'),footerActions:!!primary.closest('footer'),toolbarHeight:document.getElementById('controls').clientHeight};
+    dialog.querySelector('header [aria-label=Close]').click();
+    document.getElementById('settingsBtn').click();
+    document.getElementById('editRepoName').click();
+    const legacy=document.querySelector('.dialog'), action=legacy.querySelector('#dialogAction'), cancel=legacy.querySelector('#dialogSecondaryAction'), legacyBounds=legacy.getBoundingClientRect();
+    const footer=legacy.querySelector('.dialogFooter');
+    cancel.focus(); cancel.dispatchEvent(new KeyboardEvent('keydown',{key:'Tab',bubbles:true,cancelable:true}));
+    const focusContained=legacy.contains(document.activeElement);
+    const legacyResult={width:legacyBounds.width,centered:Math.abs(legacyBounds.left+legacyBounds.width/2-innerWidth/2)<1 && Math.abs(legacyBounds.top+legacyBounds.height/2-innerHeight/2)<1,
+      role:legacy.getAttribute('role'),buttons:action.tagName==='BUTTON' && cancel.tagName==='BUTTON',footerActions:footer.contains(action)&&footer.contains(cancel),
+      primaryBackground:getComputedStyle(action).backgroundColor,primaryForeground:getComputedStyle(action).color,borderRadius:getComputedStyle(action).borderRadius,
+      focusContained,noHorizontalOverflow:legacy.scrollWidth<=legacy.clientWidth};
+    const validation=document.createElement('div');validation.className='workflowStatus';validation.dataset.kind='error';validation.textContent='Search failed. Try again.';
+    document.body.append(validation);
+    const validationStyle=getComputedStyle(validation);
+    legacyResult.errorContrast=contrast(validationStyle.color,validationStyle.backgroundColor);
+    validation.remove();
+    cancel.click(); document.getElementById('settingsClose').click();
+    api.postMessage({command:'__hostDialogResult',...layoutResult,legacy:legacyResult});
+  });
+  window.addEventListener('message', event => {
     if (!api || event.data.command !== '__hostThemeSample') return;
     const graphPath = document.querySelector('#commitGraph path.line');
     const dropdown = document.querySelector('#branchDropdown .dropdownCurrentValue');
@@ -52,6 +84,8 @@ const webviewProbe = `
     api.postMessage({
       command: '__hostThemeResult',
       theme: document.body.dataset.vscodeThemeId,
+      cssTokens: Object.fromEntries((event.data.previewVariables || []).map(name => [name, getComputedStyle(document.body).getPropertyValue(name).trim()])),
+      font: getComputedStyle(document.body).font,
       kind: document.body.dataset.vscodeThemeKind,
       stroke: getComputedStyle(graphPath).stroke,
       expectedStroke: color(event.data.customColor || 'var(--vscode-scmGraph-historyItemRefColor, var(--vscode-charts-green))'),
@@ -132,6 +166,7 @@ try {
 	const testFile = path.join(directory, 'run-tests.cjs');
 	await writeFile(testFile, `
 const assert = require('node:assert/strict');
+const fs = require('node:fs');
 const vscode = require('vscode');
 exports.run = async () => {
   const extension = vscode.extensions.getExtension(${JSON.stringify(manifest.publisher + '.' + manifest.name)});
@@ -178,7 +213,15 @@ exports.run = async () => {
   assert.equal(ui.rows, 4);
   assert.equal(ui.graphSvg, true);
   assert.equal(ui.commitDetailsFile, 'fixture.txt');
-  const themeSamples = [];
+  const themeSamples = [], dialogSamples=[];
+  const sampleDialog = () => new Promise((resolve,reject)=> {
+    const timeout=setTimeout(()=> { listener.dispose(); reject(new Error('Workflow dialog probe did not respond')); },5000);
+    const listener=view.panel.webview.onDidReceiveMessage(message=> {
+      if(message.command!=='__hostDialogResult')return;
+      clearTimeout(timeout);listener.dispose();resolve(message);
+    });
+    view.panel.webview.postMessage({command:'__hostDialogSample'});
+  });
   async function sampleTheme(theme, expectedPrimary) {
     const deadline = Date.now() + 10000;
     while (Date.now() < deadline) {
@@ -190,7 +233,7 @@ exports.run = async () => {
           listener.dispose();
           resolve(message);
         });
-        view.panel.webview.postMessage({command:'__hostThemeSample', customColor:${JSON.stringify(customPalette?.[0]) ?? 'undefined'}, secondaryColor:${JSON.stringify(customPalette?.[1]) ?? 'undefined'}});
+        view.panel.webview.postMessage({command:'__hostThemeSample', customColor:${JSON.stringify(customPalette?.[0]) ?? 'undefined'}, secondaryColor:${JSON.stringify(customPalette?.[1]) ?? 'undefined'},previewVariables:[...new Set([...${JSON.stringify(previewVariables)},...(html.match(/--vscode-[\\w-]+/g)||[])])]});
       });
       if (sample.theme !== theme || (expectedPrimary && sample.stroke !== expectedPrimary)) {
         await new Promise(resolve => setTimeout(resolve, 100));
@@ -218,6 +261,32 @@ exports.run = async () => {
   for (const theme of ${JSON.stringify(themeNames)}) {
     await vscode.workspace.getConfiguration('workbench').update('colorTheme', theme, vscode.ConfigurationTarget.Global);
     themeSamples.push(await sampleTheme(theme));
+    const dialog=await sampleDialog();
+    assert.equal(dialog.primaryBackground,dialog.expectedPrimaryBackground,'Primary action uses the theme button background');
+    assert.equal(dialog.primaryForeground,dialog.expectedPrimaryForeground,'Primary action uses the paired theme foreground');
+    assert.equal(dialog.legacy.width,440,'Existing Git action dialogs have the shared width');
+    assert.equal(dialog.legacy.centered,true,'Existing dialogs are centered');
+    assert.equal(dialog.legacy.buttons,true,'Existing actions use keyboard-accessible buttons');
+    assert.equal(dialog.legacy.role,'dialog');
+    assert.equal(dialog.legacy.footerActions,true);
+    assert.equal(dialog.legacy.focusContained,true,'Tab keeps focus inside the dialog');
+    assert.equal(dialog.legacy.noHorizontalOverflow,true);
+    assert.equal(dialog.legacy.borderRadius,'2px','Existing actions use workbench button corners');
+    assert.equal(dialog.legacy.primaryBackground,dialog.expectedPrimaryBackground);
+    assert.equal(dialog.legacy.primaryForeground,dialog.expectedPrimaryForeground);
+    assert(dialog.legacy.errorContrast>=4.5,'Workflow error text is readable in each theme');
+    assert(dialog.centered && dialog.width===440,'Layout dialog is centered and compact');
+    assert(dialog.checkboxWidth===16 && dialog.indicatorWidth===16 && dialog.toggled,'Visible checkbox has a working 16px input target');
+    assert(dialog.noTextarea && dialog.pickerWidth>350 && dialog.footerActions,'Layout uses a branch picker and footer actions');
+    assert(dialog.toolbarHeight===40,'Repository actions stay in one toolbar row');
+    dialogSamples.push(dialog);
+  }
+  if (${JSON.stringify(previewDirectory)}) {
+    const destination=${JSON.stringify(previewDirectory)};
+    fs.mkdirSync(destination,{recursive:true});
+    fs.writeFileSync(destination+'/template.html',html);
+    fs.writeFileSync(destination+'/themes.json',JSON.stringify(themeSamples.map(sample=>({theme:sample.theme,kind:sample.kind,font:sample.font,cssTokens:sample.cssTokens})),null,2));
+    fs.writeFileSync(destination+'/history.json',JSON.stringify(result.commits));
   }
   if (!${Boolean(customPalette)}) {
     const theme = ${JSON.stringify(themeNames.at(-1))};
@@ -227,6 +296,7 @@ exports.run = async () => {
     await sampleTheme(theme, 'rgb(171, 205, 239)');
   }
   console.log('THEME_SMOKE_OK ' + JSON.stringify({themes:themeSamples.map(sample => ({theme:sample.theme,kind:sample.kind,stroke:sample.stroke,icon:sample.icon,dropdown:sample.dropdown,sameGraph:sample.sameGraph,inactiveLabels:sample.inactiveLabels})),liveColorCustomizations:${!customPalette},customPalette:${Boolean(customPalette)}}));
+  console.log('DIALOG_SMOKE_OK '+JSON.stringify(dialogSamples));
   console.log('HOST_SMOKE_OK ' + JSON.stringify({vscode:vscode.version,node:process.versions.node,commits:result.commits.length,webviewRequestedHistory:true,renderedRows:ui.rows,graphSvg:ui.graphSvg,commitDetailsFile:ui.commitDetailsFile,copiedServiceWorkerCache:${Boolean(cacheSource)}}));
   await vscode.commands.executeCommand('workbench.action.closeAllEditors');
 };

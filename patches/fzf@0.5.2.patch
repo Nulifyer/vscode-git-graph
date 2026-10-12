@@ -1,0 +1,11 @@
+diff --git a/package.json b/package.json
+index c056601a82cda1a3dd532e51a390db10f5b5a3db..0f12830952622be1ffc3783a62b8322a8eee7043 100644
+--- a/package.json
++++ b/package.json
+@@ -85,5 +85,5 @@
+     "vite": "^2.9.13",
+     "vite-plugin-babel-macros": "^1.0.5"
+   },
+-  "type": "module"
++  "type": "commonjs"
+ }

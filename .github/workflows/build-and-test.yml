@@ -88,6 +88,10 @@ jobs:
         run: xvfb-run -a bun scripts/test-extension-host.ts
         env:
           EXTENSION_UNDER_TEST: .build/release-vsix/extension
+      - name: Test packaged history and repository workflows
+        run: xvfb-run -a bun scripts/test-history-workflows.ts
+        env:
+          EXTENSION_UNDER_TEST: .build/release-vsix/extension
       - name: Checksum verified VSIX
         run: sha256sum "$VSIX_NAME" > "$VSIX_NAME.sha256"
         env:

@@ -1,6 +1,11 @@
 import * as GG from '../src/types';
 
 declare global {
+	const HistorySearch: typeof import('../src/utils/historySearch').HistorySearch;
+	const searchText: typeof import('../src/utils/historySearch').searchText;
+	const historyViewport: typeof import('../src/utils/historyViewport').historyViewport;
+	const foldHistory: typeof import('../src/utils/historyViewport').foldHistory;
+	const pinnedHistoryLanes: typeof import('../src/utils/historyViewport').pinnedHistoryLanes;
 
 	/* Visual Studio Code API Types */
 
@@ -45,6 +50,7 @@ declare global {
 	}
 
 	interface WebViewState {
+		readonly layout?: { collapsed: boolean; pinnedBranches: string[]; expandedGroups: string[] };
 		readonly currentRepo: string;
 		readonly currentRepoLoading: boolean;
 		readonly gitRepos: GG.GitRepoSet;

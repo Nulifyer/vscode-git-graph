@@ -1,5 +1,26 @@
 # Change Log
 
+## 1.32.2 - 2026-10-12
+
+- Replace the extra workflow button row with compact workbench actions and an overflow menu.
+- Model workflow dialogs on VS Code controls with aligned forms, list rows, and footer actions.
+- Show the collapse checkbox correctly and use a branch picker with removable pinned branches.
+- Use Microsoft Codicons for history, overflow, and worktree removal actions.
+- Review rendered layouts using colors exported from the installed workbench themes.
+
+- Align existing Git action dialogs and repository settings with the workbench controls.
+- Keep legacy dialogs inside narrow windows and preserve keyboard focus and Cancel behavior.
+- Keep workflow error messages readable when a theme uses the same red for its error background and foreground.
+
+- Render commit rows and SVG paths within the viewport while preserving selection, details, and comparisons.
+- Add fzf v2 search, extended queries, smart case, match highlighting, and query cancellation. Keep exact and regex modes.
+- Search complete repository history with author, date, and path filters. Follow file renames and open results in the graph.
+- Add worktree listing, creation, opening, and non-forced removal.
+- Add visual plans for linear interactive rebases and native merge-editor controls for conflicts, continue, and abort.
+- Add collapsible history, pinned branch lanes, compact reference labels, ancestry highlighting, and keyboard context menus.
+- Add disposable real-Git tests and VS Code host checks for history workflows.
+
+
 ## 1.31.5 - 2026-10-12
 
 - Use visible name Git Graph Modern because Marketplace also reserves the upstream display name Git Graph.

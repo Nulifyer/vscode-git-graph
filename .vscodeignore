@@ -21,3 +21,5 @@ eslint.config.mjs
 jest.config.js
 *.vsix.sha256
 .env
+
+patches/

@@ -7,11 +7,16 @@ class GitGraphView {
 	private gitStashes: ReadonlyArray<GG.GitStash> = [];
 	private gitTags: ReadonlyArray<string> = [];
 	private commits: GG.GitCommit[] = [];
+	private fullCommits: GG.GitCommit[] = [];
+	private collapsedGroups = new Map<string, string[]>();
+	private layout = { collapsed: false, pinnedBranches: [] as string[], expandedGroups: [] as string[] };
+	private highlightedPath = new Set<string>();
 	private commitHead: string | null = null;
 	private commitLookup: { [hash: string]: number } = {};
 	private onlyFollowFirstParent: boolean = false;
 	private avatars: AvatarImageCollection = {};
 	private currentBranches: string[] | null = null;
+	private historyReference: string | null = null;
 
 	private currentRepo!: string;
 	private currentRepoLoading: boolean = true;
@@ -34,6 +39,38 @@ class GitGraphView {
 	private expandedCommit: ExpandedCommit | null = null;
 	private maxCommits: number;
 	private scrollTop = 0;
+	private viewportFirst = -1;
+	private viewportLast = -1;
+	private viewportFrame = 0;
+	private paintingViewport = false;
+	private tableCache: { commits: GG.GitCommit[]; colours: number[]; widths: number[]; muted: boolean[] } | null = null;
+
+	private getViewport() {
+		const header = document.getElementById('tableColHeaders')?.clientHeight ?? 31;
+		const expansion = this.expandedCommit && !this.isCdvDocked()
+			? { index: this.expandedCommit.index, height: this.gitRepos[this.currentRepo].cdvHeight } : null;
+		const pinned = [this.expandedCommit?.commitHash, this.expandedCommit?.compareWithHash]
+			.map(hash => hash ? this.getCommitId(hash) : null).filter((index): index is number => index !== null);
+		return historyViewport(this.commits.length, this.viewElem.scrollTop - this.controlsElem.clientHeight - header, this.viewElem.clientHeight, 24, expansion, pinned);
+	}
+
+	public ensureCommitElement(hash: string): HTMLElement | null {
+		let elem = findCommitElemWithId(getCommitElems(), this.getCommitId(hash));
+		if (elem === null) {
+			this.scrollToCommit(hash, true);
+			elem = findCommitElemWithId(getCommitElems(), this.getCommitId(hash));
+		}
+		return elem;
+	}
+
+	private updateViewport() {
+		if (this.currentRepoLoading || this.commits.length === 0) return;
+		const range = this.getViewport();
+		if (range.first !== this.viewportFirst || range.last !== this.viewportLast) {
+			this.paintingViewport = true;
+			try { this.render(); } finally { this.paintingViewport = false; }
+		}
+	}
 	private renderedGitBranchHead: string | null = null;
 
 	private lastScrollToStash: {
@@ -56,6 +93,7 @@ class GitGraphView {
 
 	constructor(viewElem: HTMLElement, prevState: WebViewState | null) {
 		this.gitRepos = initialState.repos;
+		if (prevState?.layout) this.layout = prevState.layout;
 		this.config = initialState.config;
 		this.maxCommits = this.config.initialLoadCommits;
 		this.viewElem = viewElem;
@@ -85,6 +123,7 @@ class GitGraphView {
 
 		this.branchDropdown = new Dropdown('branchDropdown', false, true, 'Branches', (values) => {
 			this.currentBranches = values;
+			if (!values.includes(this.historyReference || '')) this.historyReference = null;
 			this.maxCommits = this.config.initialLoadCommits;
 			this.saveState();
 			this.clearCommits();
@@ -206,6 +245,8 @@ class GitGraphView {
 
 	private loadRepo(repo: string) {
 		this.currentRepo = repo;
+		this.historyReference = null;
+		this.highlightedPath.clear();
 		this.currentRepoLoading = true;
 		this.showRemoteBranchesElem.checked = getShowRemoteBranches(this.gitRepos[this.currentRepo].showRemoteBranchesV2);
 		this.maxCommits = this.config.initialLoadCommits;
@@ -244,7 +285,7 @@ class GitGraphView {
 			// Filter any branches that are currently selected, but no longer exist
 			const globPatterns = this.config.customBranchGlobPatterns.map((pattern) => pattern.glob);
 			this.currentBranches = this.currentBranches.filter((branch) =>
-				this.gitBranches.includes(branch) || globPatterns.includes(branch)
+				this.gitBranches.includes(branch) || globPatterns.includes(branch) || branch === this.historyReference
 			);
 		}
 		if (this.currentBranches === null || this.currentBranches.length === 0) {
@@ -256,7 +297,7 @@ class GitGraphView {
 				// Show specific branches if they exist in the repository
 				const globPatterns = this.config.customBranchGlobPatterns.map((pattern) => pattern.glob);
 				this.currentBranches.push(...onRepoLoadShowSpecificBranches.filter((branch) =>
-					this.gitBranches.includes(branch) || globPatterns.includes(branch)
+					this.gitBranches.includes(branch) || globPatterns.includes(branch) || branch === this.historyReference
 				));
 			}
 			if (onRepoLoadShowCheckedOutBranch && this.gitBranchHead !== null && !this.currentBranches.includes(this.gitBranchHead)) {
@@ -305,7 +346,7 @@ class GitGraphView {
 		const tagsChanged = !arraysStrictlyEqual(this.gitTags, tags);
 		this.gitTags = tags;
 
-		if (!this.currentRepoLoading && !this.currentRepoRefreshState.hard && this.moreCommitsAvailable === moreAvailable && this.onlyFollowFirstParent === onlyFollowFirstParent && this.commitHead === commitHead && commits.length > 0 && arraysEqual(this.commits, commits, (a, b) =>
+		if (!this.currentRepoLoading && !this.currentRepoRefreshState.hard && this.moreCommitsAvailable === moreAvailable && this.onlyFollowFirstParent === onlyFollowFirstParent && this.commitHead === commitHead && commits.length > 0 && arraysEqual(this.fullCommits, commits, (a, b) =>
 			a.hash === b.hash &&
 			arraysStrictlyEqual(a.heads, b.heads) &&
 			arraysEqual(a.tags, b.tags, (a, b) => a.name === b.name && a.annotated === b.annotated) &&
@@ -316,6 +357,7 @@ class GitGraphView {
 
 			if (this.commits[0].hash === UNCOMMITTED) {
 				this.commits[0] = commits[0];
+				this.fullCommits[0] = commits[0];
 				this.saveState();
 				this.renderUncommittedChanges();
 				if (this.expandedCommit !== null && this.expandedCommit.commitElem !== null) {
@@ -343,6 +385,7 @@ class GitGraphView {
 		this.moreCommitsAvailable = moreAvailable;
 		this.onlyFollowFirstParent = onlyFollowFirstParent;
 		this.commits = commits;
+		this.fullCommits = commits;
 		this.commitHead = commitHead;
 		this.commitLookup = {};
 
@@ -372,8 +415,7 @@ class GitGraphView {
 
 		this.saveState();
 
-		this.graph.loadCommits(this.commits, this.commitHead, this.commitLookup, this.onlyFollowFirstParent);
-		this.render();
+		this.rebuildPresentation();
 
 		if (currentRepoLoading && this.config.onRepoLoad.scrollToHead && this.commitHead !== null) {
 			this.scrollToCommit(this.commitHead, true);
@@ -416,9 +458,8 @@ class GitGraphView {
 			if (this.loadViewTo.commitDetails && (this.expandedCommit === null || this.expandedCommit.commitHash !== this.loadViewTo.commitDetails.commitHash || this.expandedCommit.compareWithHash !== this.loadViewTo.commitDetails.compareWithHash)) {
 				const commitIndex = this.getCommitId(this.loadViewTo.commitDetails.commitHash);
 				const compareWithIndex = this.loadViewTo.commitDetails.compareWithHash !== null ? this.getCommitId(this.loadViewTo.commitDetails.compareWithHash) : null;
-				const commitElems = getCommitElems();
-				const commitElem = findCommitElemWithId(commitElems, commitIndex);
-				const compareWithElem = findCommitElemWithId(commitElems, compareWithIndex);
+				const commitElem = commitIndex !== null ? this.ensureCommitElement(this.commits[commitIndex].hash) : null;
+				const compareWithElem = compareWithIndex !== null ? this.ensureCommitElement(this.commits[compareWithIndex].hash) : null;
 
 				if (commitElem !== null && (this.loadViewTo.commitDetails.compareWithHash === null || compareWithElem !== null)) {
 					if (compareWithElem !== null) {
@@ -448,6 +489,7 @@ class GitGraphView {
 		closeDialogAndContextMenu();
 		this.moreCommitsAvailable = false;
 		this.commits = [];
+		this.fullCommits = [];
 		this.commitHead = null;
 		this.commitLookup = {};
 		this.renderedGitBranchHead = null;
@@ -520,12 +562,75 @@ class GitGraphView {
 
 	/* Getters */
 
+	public getSelectedHash() { return this.expandedCommit?.commitHash ?? this.commitHead; }
+
+	public getTableElement() { return this.tableElem; }
+
+	public getAvailableBranches() { return this.gitBranches; }
+
+	public isPathHighlighted() { return this.highlightedPath.size > 0; }
+
+	public getLayout() { return this.layout; }
+
+	public configureLayout(collapsed: boolean, pinnedBranches: string[]) {
+		this.layout = { collapsed, pinnedBranches, expandedGroups: [] };
+		this.viewElem.scrollTop = 0; this.scrollTop = 0;
+		this.rebuildPresentation(); this.saveState();
+	}
+
+	private rebuildPresentation() {
+		const keep = new Set([this.commitHead, this.expandedCommit?.commitHash, this.expandedCommit?.compareWithHash, this.loadViewTo?.commitDetails?.commitHash, this.loadViewTo?.commitDetails?.compareWithHash].filter((hash): hash is string => !!hash));
+		const presentation = this.layout.collapsed ? foldHistory(this.fullCommits, keep, new Set(this.layout.expandedGroups)) : { commits: this.fullCommits, groups: new Map<string, string[]>() };
+		this.commits = presentation.commits; this.collapsedGroups = presentation.groups; this.commitLookup = {};
+		for (let i = 0; i < this.commits.length; i++) this.commitLookup[this.commits[i].hash] = i;
+		if (this.expandedCommit) this.expandedCommit.index = this.commitLookup[this.expandedCommit.commitHash];
+		this.graph.loadCommits(this.commits, this.commitHead, this.commitLookup, this.onlyFollowFirstParent, this.layout.pinnedBranches);
+		this.tableCache = null; this.render();
+	}
+
+	private revealFoldedCommit(hash: string) {
+		for (const [anchor, hashes] of this.collapsedGroups) {
+			if (hashes.includes(hash)) { this.layout.expandedGroups.push(anchor); this.rebuildPresentation(); this.saveState(); return; }
+		}
+	}
+
+	public getSearchCommits(): ReadonlyArray<GG.GitCommit> { return this.fullCommits; }
+
+	public highlightPath(hash: string | null) {
+		this.highlightedPath.clear();
+		if (hash) {
+			const lookup = new Map(this.fullCommits.map(commit => [commit.hash, commit]));
+			const pending = [hash];
+			while (pending.length) {
+				const next = pending.pop()!;
+				if (this.highlightedPath.has(next)) continue;
+				this.highlightedPath.add(next);
+				for (const parent of lookup.get(next)?.parents || []) pending.push(parent);
+			}
+		}
+		this.render();
+	}
+
+	public getCurrentRepository(): string | null { return this.currentRepo || null; }
+
+	public showHistoryFromCommit(hash: string) {
+		if (!/^[a-f0-9]{40,64}$/.test(hash)) return;
+		this.historyReference = hash;
+		this.currentBranches = [hash];
+		this.maxCommits = this.config.initialLoadCommits;
+		this.loadViewTo = { repo: this.currentRepo, commitDetails: { commitHash: hash, compareWithHash: null } };
+		this.closeCommitDetails(false);
+		this.clearCommits();
+		this.requestLoadRepoInfoAndCommits(true, false);
+	}
+
 	public getBranches(): ReadonlyArray<string> {
 		return this.gitBranches;
 	}
 
 	public getBranchOptions(includeShowAll?: boolean): ReadonlyArray<DialogSelectInputOption> {
 		const options: DialogSelectInputOption[] = [];
+		if (this.historyReference) options.push({ name: 'History from ' + abbrevCommit(this.historyReference), value: this.historyReference });
 		if (includeShowAll) {
 			options.push({ name: 'Show All', value: SHOW_ALL_BRANCHES });
 		}
@@ -661,7 +766,7 @@ class GitGraphView {
 	}
 
 	public requestCommitDetails(hash: string, refresh: boolean) {
-		let commit = this.commits[this.commitLookup[hash]];
+		let commit = this.fullCommits.find(commit => commit.hash === hash)!;
 		sendMessage({
 			command: 'commitDetails',
 			repo: this.currentRepo,
@@ -695,6 +800,7 @@ class GitGraphView {
 	/* State */
 
 	public saveState() {
+		if (this.paintingViewport) return;
 		let expandedCommit;
 		if (this.expandedCommit !== null) {
 			expandedCommit = Object.assign({}, this.expandedCommit);
@@ -718,7 +824,8 @@ class GitGraphView {
 			gitRemotes: this.gitRemotes,
 			gitStashes: this.gitStashes,
 			gitTags: this.gitTags,
-			commits: this.commits,
+			commits: this.fullCommits,
+			layout: this.layout,
 			commitHead: this.commitHead,
 			avatars: this.avatars,
 			currentBranches: this.currentBranches,
@@ -803,15 +910,19 @@ class GitGraphView {
 			: this.config.graph.grid.y;
 		this.config.graph.grid.offsetY = headerHeight + this.config.graph.grid.y / 2;
 
-		this.graph.render(expandedCommit);
+		this.graph.render(expandedCommit, this.viewportFirst, this.viewportLast, this.highlightedPath);
 	}
 
 	private renderTable() {
 		const colVisibility = this.getColumnVisibility();
 		const currentHash = this.commits.length > 0 && this.commits[0].hash === UNCOMMITTED ? UNCOMMITTED : this.commitHead;
-		const vertexColours = this.graph.getVertexColours();
-		const widthsAtVertices = this.config.referenceLabels.branchLabelsAlignedToGraph ? this.graph.getWidthsAtVertices() : [];
-		const mutedCommits = this.graph.getMutedCommits(currentHash);
+		if (this.tableCache === null || this.tableCache.commits !== this.commits) {
+			this.tableCache = { commits: this.commits, colours: this.graph.getVertexColours(), widths: this.graph.getWidthsAtVertices(), muted: this.graph.getMutedCommits(currentHash) };
+		}
+		const vertexColours = this.tableCache.colours, widthsAtVertices = this.tableCache.widths, mutedCommits = this.tableCache.muted;
+		const viewport = this.getViewport();
+		this.viewportFirst = viewport.first;
+		this.viewportLast = viewport.last;
 		const textFormatter = new TextFormatter(this.commits, this.gitRepos[this.currentRepo].issueLinkingConfig, {
 			emoji: true,
 			issueLinking: true,
@@ -824,9 +935,14 @@ class GitGraphView {
 			(colVisibility.commit ? '<th class="tableColHeader" data-col="4">Commit</th>' : '') +
 			'</tr>';
 
-		for (let i = 0; i < this.commits.length; i++) {
+		let cursor = 0;
+		const spacer = (rows: number) => rows > 0 ? '<tr class="viewportSpacer" aria-hidden="true"><td colspan="' + this.getNumColumns() + '" style="height:' + rows * 24 + 'px"></td></tr>' : '';
+		for (const i of viewport.rows) {
+			html += spacer(i - cursor);
+			cursor = i + 1;
 			let commit = this.commits[i];
 			let message = '<span class="text">' + textFormatter.format(commit.message) + '</span>';
+			if (this.collapsedGroups.has(commit.hash)) message += '<button class="expandHistoryGroup" data-hash="' + commit.hash + '">Expand</button>';
 			let date = formatShortDate(commit.date);
 			let branchLabels = getBranchLabels(commit.heads, commit.remotes);
 			let refBranches = '', refTags = '', j, k, refName, remoteName, refActive, refHtml, branchCheckedOutAtCommit: string | null = null;
@@ -834,7 +950,7 @@ class GitGraphView {
 			for (j = 0; j < branchLabels.heads.length; j++) {
 				refName = escapeHtml(branchLabels.heads[j].name);
 				refActive = branchLabels.heads[j].name === this.gitBranchHead;
-				refHtml = '<span class="gitRef head' + (refActive ? ' active' : '') + '" data-name="' + refName + '">' + SVG_ICONS.branch + '<span class="gitRefName" data-fullref="' + refName + '">' + refName + '</span>';
+				refHtml = '<span class="gitRef head' + (refActive ? ' active' : '') + '" data-name="' + refName + '">' + SVG_ICONS.branch + '<span class="gitRefName" data-fullref="' + refName + '" title="' + refName + '">' + refName + '</span>';
 				for (k = 0; k < branchLabels.heads[j].remotes.length; k++) {
 					remoteName = escapeHtml(branchLabels.heads[j].remotes[k]);
 					refHtml += '<span class="gitRefHeadRemote" data-remote="' + remoteName + '" data-fullref="' + escapeHtml(branchLabels.heads[j].remotes[k] + '/' + branchLabels.heads[j].name) + '">' + remoteName + '</span>';
@@ -845,17 +961,17 @@ class GitGraphView {
 			}
 			for (j = 0; j < branchLabels.remotes.length; j++) {
 				refName = escapeHtml(branchLabels.remotes[j].name);
-				refBranches += '<span class="gitRef remote" data-name="' + refName + '" data-remote="' + (branchLabels.remotes[j].remote !== null ? escapeHtml(branchLabels.remotes[j].remote!) : '') + '">' + SVG_ICONS.branch + '<span class="gitRefName" data-fullref="' + refName + '">' + refName + '</span></span>';
+				refBranches += '<span class="gitRef remote" data-name="' + refName + '" data-remote="' + (branchLabels.remotes[j].remote !== null ? escapeHtml(branchLabels.remotes[j].remote!) : '') + '">' + SVG_ICONS.branch + '<span class="gitRefName" data-fullref="' + refName + '" title="' + refName + '">' + refName + '</span></span>';
 			}
 
 			for (j = 0; j < commit.tags.length; j++) {
 				refName = escapeHtml(commit.tags[j].name);
-				refTags += '<span class="gitRef tag" data-name="' + refName + '" data-tagtype="' + (commit.tags[j].annotated ? 'annotated' : 'lightweight') + '">' + SVG_ICONS.tag + '<span class="gitRefName" data-fullref="' + refName + '">' + refName + '</span></span>';
+				refTags += '<span class="gitRef tag" data-name="' + refName + '" data-tagtype="' + (commit.tags[j].annotated ? 'annotated' : 'lightweight') + '">' + SVG_ICONS.tag + '<span class="gitRefName" data-fullref="' + refName + '" title="' + refName + '">' + refName + '</span></span>';
 			}
 
 			if (commit.stash !== null) {
 				refName = escapeHtml(commit.stash.selector);
-				refBranches = '<span class="gitRef stash" data-name="' + refName + '">' + SVG_ICONS.stash + '<span class="gitRefName" data-fullref="' + refName + '">' + escapeHtml(commit.stash.selector.substring(5)) + '</span></span>' + refBranches;
+				refBranches = '<span class="gitRef stash" data-name="' + refName + '">' + SVG_ICONS.stash + '<span class="gitRefName" data-fullref="' + refName + '" title="' + refName + '">' + escapeHtml(commit.stash.selector.substring(5)) + '</span></span>' + refBranches;
 			}
 
 			const commitDot = commit.hash === this.commitHead
@@ -865,14 +981,16 @@ class GitGraphView {
 				) + '."></span>'
 				: '';
 
-			html += '<tr class="commit' + (commit.hash === currentHash ? ' current' : '') + (mutedCommits[i] ? ' mute' : '') + '"' + (commit.hash !== UNCOMMITTED ? '' : ' id="uncommittedChanges"') + ' data-id="' + i + '" data-color="' + vertexColours[i] + '">' +
+			html += '<tr class="commit' + (commit.hash === currentHash ? ' current' : '') + (mutedCommits[i] ? ' mute' : '') + (this.highlightedPath.size ? this.highlightedPath.has(commit.hash) ? ' pathHighlight' : ' pathMuted' : '') + '"' + (commit.hash !== UNCOMMITTED ? '' : ' id="uncommittedChanges"') + ' tabindex="0" aria-rowindex="' + (i + 2) + '" aria-label="' + escapeHtml(commit.message + ', ' + [...commit.heads, ...commit.tags.map(tag => tag.name), ...commit.remotes.map(remote => remote.name)].join(', ') + ', ' + commit.author + ', ' + date.formatted + ', ' + abbrevCommit(commit.hash)) + '" data-id="' + i + '" data-color="' + vertexColours[i] + '">' +
 				(this.config.referenceLabels.branchLabelsAlignedToGraph ? '<td>' + (refBranches !== '' ? '<span style="margin-left:' + (widthsAtVertices[i] - 4) + 'px"' + refBranches.substring(5) : '') + '</td><td><span class="description">' + commitDot : '<td></td><td><span class="description">' + commitDot + refBranches) + (this.config.referenceLabels.tagLabelsOnRight ? message + refTags : refTags + message) + '</span></td>' +
 				(colVisibility.date ? '<td class="dateCol text" title="' + date.title + '">' + date.formatted + '</td>' : '') +
 				(colVisibility.author ? '<td class="authorCol text" title="' + escapeHtml(commit.author + ' <' + commit.email + '>') + '">' + (this.config.fetchAvatars ? '<span class="avatar" data-email="' + escapeHtml(commit.email) + '">' + (typeof this.avatars[commit.email] === 'string' ? '<img class="avatarImg" src="' + this.avatars[commit.email] + '">' : '') + '</span>' : '') + escapeHtml(commit.author) + '</td>' : '') +
 				(colVisibility.commit ? '<td class="text" title="' + escapeHtml(commit.hash) + '">' + abbrevCommit(commit.hash) + '</td>' : '') +
 				'</tr>';
 		}
-		this.tableElem.innerHTML = '<table>' + html + '</table>';
+		html += spacer(this.commits.length - cursor);
+		this.tableElem.dataset.totalCommits = this.commits.length.toString();
+		this.tableElem.innerHTML = '<table aria-label="Git history" aria-rowcount="' + (this.commits.length + 1) + '">' + html + '</table>';
 		this.footerElem.innerHTML = this.moreCommitsAvailable ? '<div id="loadMoreCommitsBtn" class="roundedBtn">Load More Commits</div>' : '';
 		this.makeTableResizable();
 		this.findWidget.refresh();
@@ -901,21 +1019,21 @@ class GitGraphView {
 					// Commit Details View is open
 					if (!expandedCommit.loading && expandedCommit.commitDetails !== null && expandedCommit.fileTree !== null) {
 						this.showCommitDetails(expandedCommit.commitDetails, expandedCommit.fileTree, expandedCommit.avatar, expandedCommit.codeReview, expandedCommit.lastViewedFile, true);
-						if (expandedCommit.commitHash === UNCOMMITTED) {
+						if (expandedCommit.commitHash === UNCOMMITTED && !this.paintingViewport) {
 							this.requestCommitDetails(expandedCommit.commitHash, true);
 						}
 					} else {
-						this.loadCommitDetails(commitElem);
+						if (this.paintingViewport) this.renderCommitDetailsView(true); else this.loadCommitDetails(commitElem);
 					}
 				} else {
 					// Commit Comparison is open
 					if (!expandedCommit.loading && expandedCommit.fileChanges !== null && expandedCommit.fileTree !== null) {
 						this.showCommitComparison(expandedCommit.commitHash, expandedCommit.compareWithHash, expandedCommit.fileChanges, expandedCommit.fileTree, expandedCommit.codeReview, expandedCommit.lastViewedFile, true);
-						if (expandedCommit.commitHash === UNCOMMITTED || expandedCommit.compareWithHash === UNCOMMITTED) {
+						if ((expandedCommit.commitHash === UNCOMMITTED || expandedCommit.compareWithHash === UNCOMMITTED) && !this.paintingViewport) {
 							this.requestCommitComparison(expandedCommit.commitHash, expandedCommit.compareWithHash, true);
 						}
 					} else {
-						this.loadCommitComparison(commitElem, compareWithElem!);
+						if (this.paintingViewport) this.renderCommitDetailsView(true); else this.loadCommitComparison(commitElem, compareWithElem!);
 					}
 				}
 			}
@@ -1915,19 +2033,19 @@ class GitGraphView {
 	 * @param flash Should the commit flash after it has been scrolled to.
 	 */
 	public scrollToCommit(hash: string, alwaysCenterCommit: boolean, flash: boolean = false) {
-		const elem = findCommitElemWithId(getCommitElems(), this.getCommitId(hash));
-		if (elem === null) return;
-
-		let elemTop = this.controlsElem.clientHeight + elem.offsetTop;
-		if (alwaysCenterCommit || elemTop - 8 < this.viewElem.scrollTop || elemTop + 32 - this.viewElem.clientHeight > this.viewElem.scrollTop) {
-			this.viewElem.scroll(0, this.controlsElem.clientHeight + elem.offsetTop + 12 - this.viewElem.clientHeight / 2);
+		this.revealFoldedCommit(hash);
+		const index = this.getCommitId(hash);
+		if (index === null) return;
+		const expansion = this.expandedCommit && !this.isCdvDocked() && index > this.expandedCommit.index ? this.gitRepos[this.currentRepo].cdvHeight : 0;
+		const top = this.controlsElem.clientHeight + 31 + index * 24 + expansion;
+		if (alwaysCenterCommit || top < this.viewElem.scrollTop || top + 24 > this.viewElem.scrollTop + this.viewElem.clientHeight) {
+			this.viewElem.scrollTop = Math.max(0, top + 12 - this.viewElem.clientHeight / 2);
 		}
-
-		if (flash && !elem.classList.contains('flash')) {
+		this.updateViewport();
+		const elem = findCommitElemWithId(getCommitElems(), index);
+		if (flash && elem !== null) {
 			elem.classList.add('flash');
-			setTimeout(() => {
-				elem.classList.remove('flash');
-			}, 850);
+			setTimeout(() => elem.classList.remove('flash'), 850);
 		}
 	}
 
@@ -1999,6 +2117,7 @@ class GitGraphView {
 		let active = this.viewElem.scrollTop > 0, timeout: ReturnType<typeof setTimeout> | null = null;
 		this.scrollShadowElem.className = active ? CLASS_ACTIVE : '';
 		this.viewElem.addEventListener('scroll', () => {
+			if (!this.viewportFrame) this.viewportFrame = requestAnimationFrame(() => { this.viewportFrame = 0; this.updateViewport(); });
 			const scrollTop = this.viewElem.scrollTop;
 			if (active !== scrollTop > 0) {
 				active = scrollTop > 0;
@@ -2035,10 +2154,11 @@ class GitGraphView {
 					handledEvent(e);
 				} else if (e.keyCode ? e.keyCode === 13 : e.key === 'Enter') {
 					// Use keyCode === 13 to detect 'Enter' events if available (for compatibility with IME Keyboards used by Chinese / Japanese / Korean users)
+					if (e.target instanceof HTMLButtonElement) return;
 					dialog.submit();
 					handledEvent(e);
 				}
-			} else if (this.expandedCommit !== null && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
+			} else if (this.expandedCommit !== null && (e.key === 'ArrowUp' || e.key === 'ArrowDown') && !(e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement || e.target instanceof HTMLSelectElement)) {
 				const curHashIndex = this.commitLookup[this.expandedCommit.commitHash];
 				let newHashIndex = -1;
 
@@ -2070,7 +2190,7 @@ class GitGraphView {
 
 				if (newHashIndex > -1) {
 					handledEvent(e);
-					const elem = findCommitElemWithId(getCommitElems(), newHashIndex);
+					const elem = this.ensureCommitElement(this.commits[newHashIndex].hash);
 					if (elem !== null) this.loadCommitDetails(elem);
 				}
 			} else if (e.key && (e.ctrlKey || e.metaKey)) {
@@ -2118,7 +2238,7 @@ class GitGraphView {
 				switch ((<HTMLElement>e.target).dataset.type!) {
 					case 'commit':
 						if (typeof this.commitLookup[value] === 'number' && (this.expandedCommit === null || this.expandedCommit.commitHash !== value || this.expandedCommit.compareWithHash !== null)) {
-							const elem = findCommitElemWithId(getCommitElems(), this.commitLookup[value]);
+							const elem = this.ensureCommitElement(value);
 							if (elem !== null) this.loadCommitDetails(elem);
 						}
 						break;
@@ -2200,10 +2320,25 @@ class GitGraphView {
 
 	private observeTableEvents() {
 
+		this.tableElem.addEventListener('keydown', event => {
+			const row = (event.target as HTMLElement).closest<HTMLElement>('tr.commit');
+			if (!row || event.target !== row) return;
+			const index = Number(row.dataset.id);
+			if (event.key === 'Enter' || event.key === ' ') { handledEvent(event); row.click(); } else if (event.key === 'ContextMenu' || (event.shiftKey && event.key === 'F10')) {
+				handledEvent(event); const bounds = row.getBoundingClientRect(); row.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, clientX: bounds.left + 80, clientY: bounds.top + 12 }));
+			} else if (['ArrowUp', 'ArrowDown', 'Home', 'End'].includes(event.key)) {
+				handledEvent(event);
+				const next = event.key === 'Home' ? 0 : event.key === 'End' ? this.commits.length - 1 : Math.max(0, Math.min(this.commits.length - 1, index + (event.key === 'ArrowDown' ? 1 : -1)));
+				this.ensureCommitElement(this.commits[next].hash)?.focus({ preventScroll: true });
+			}
+		});
+
 		// Register Click Event Handler
 		this.tableElem.addEventListener('click', (e: MouseEvent) => {
 			if (e.target === null) return;
 			const eventTarget = <Element>e.target;
+			const expand = eventTarget.closest<HTMLElement>('.expandHistoryGroup');
+			if (expand) { handledEvent(e); this.revealFoldedCommit(expand.dataset.hash!); return; }
 			if (isUrlElem(eventTarget)) return;
 			let eventElem: HTMLElement | null;
 
@@ -3045,6 +3180,7 @@ class GitGraphView {
 
 			contextMenu.show([
 				[
+					{ title: 'View File History across Renames', visible: true, onClick: () => window.dispatchEvent(new CustomEvent('git-graph:file-history', { detail: { file: file.type === GG.GitFileStatus.Deleted ? file.oldFilePath : file.newFilePath, reference: isUncommitted ? 'HEAD' : commitOrder.to } })) },
 					{
 						title: 'View Diff',
 						visible: visibility.viewDiff && diffPossible,
@@ -3186,12 +3322,16 @@ window.addEventListener('load', () => {
 	if (viewElem === null) return;
 
 	const gitGraph = new GitGraphView(viewElem, VSCODE_API.getState());
+	const repositoryWorkbench = new RepositoryWorkbench(gitGraph);
 	const imageResizer = new ImageResizer();
 
 	/* Command Processing */
 	window.addEventListener('message', event => {
 		const msg: GG.ResponseMessage = event.data;
 		switch (msg.command) {
+			case 'repositoryTool':
+				repositoryWorkbench.receive(msg);
+				break;
 			case 'addRemote':
 				refreshOrDisplayError(msg.error, 'Unable to Add Remote', true);
 				break;
@@ -3299,6 +3439,7 @@ window.addEventListener('load', () => {
 				break;
 			case 'loadCommits':
 				gitGraph.processLoadCommitsResponse(msg);
+				repositoryWorkbench.sync();
 				break;
 			case 'loadConfig':
 				gitGraph.processLoadConfig(msg);

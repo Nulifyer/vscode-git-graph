@@ -64,6 +64,7 @@ describe('GitGraphView', () => {
 			get: () => onAvatar.subscribe
 		});
 		jest.spyOn(extensionState, 'getLastActiveRepo').mockReturnValue(null);
+		jest.spyOn(extensionState, 'getGlobalStoragePath').mockReturnValue('/path/to/global-storage');
 	});
 
 	afterAll(() => {
@@ -463,6 +464,23 @@ describe('GitGraphView', () => {
 				// Assert
 				expect(mockedWebviewPanel.mocks.messages).toHaveLength(0);
 			});
+		});
+	});
+
+	describe('Repository workflows', () => {
+		beforeEach(() => { GitGraphView.createOrShow('/path/to/extension', dataSource, extensionState, avatarManager, repoManager, logger, null); });
+		it('rejects unregistered repository paths before executing Git', async () => {
+			const run = jest.spyOn(dataSource, 'executeGit'); run.mockClear();
+			await GitGraphView.currentPanel!['respondToMessage']({ command: 'repositoryTool', repo: '/outside/workspace', requestId: 7, tool: { kind: 'worktrees' } });
+			expect(run).not.toHaveBeenCalled();
+			expect(vscode.getMockedWebviewPanel(0).mocks.messages).toContainEqual({ command: 'repositoryTool', repo: '/outside/workspace', requestId: 7, result: null, error: 'Choose a registered repository' });
+		});
+		it('correlates worktree responses and leaves file events enabled for reads', async () => {
+			jest.spyOn(dataSource, 'executeGit').mockResolvedValueOnce('worktree /path/to/repo\0HEAD abcdef\0branch refs/heads/main\0\0');
+			const mute = jest.spyOn(GitGraphView.currentPanel!['repoFileWatcher'], 'mute');
+			await GitGraphView.currentPanel!['respondToMessage']({ command: 'repositoryTool', repo: '/path/to/repo', requestId: 8, tool: { kind: 'worktrees' } });
+			expect(mute).not.toHaveBeenCalled();
+			expect(vscode.getMockedWebviewPanel(0).mocks.messages).toContainEqual({ command: 'repositoryTool', repo: '/path/to/repo', requestId: 8, result: { kind: 'worktrees', worktrees: [{ path: '/path/to/repo', head: 'abcdef', branch: 'main', main: true, locked: false, prunable: false }] }, error: null });
 		});
 	});
 

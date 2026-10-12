@@ -61,13 +61,33 @@ View a Git Graph of your repository, and easily perform Git actions from the gra
             * `Up` / `Down`: The Commit Details View will be opened on the commit directly above or below it on the Git Graph View.
             * `CTRL/CMD + Up` / `CTRL/CMD + Down`: The Commit Details View will be opened on its child or parent commit on the same branch.
                 * If the Shift Key is also pressed (i.e. `CTRL/CMD + SHIFT + Up` / `CTRL/CMD + SHIFT + Down`), when branches or merges are encountered the alternative branch is followed.
-        * `Enter`: If a dialog is open, pressing enter submits the dialog, taking the primary (left) action.
+        * `Enter`: Activate the focused button, or submit the primary dialog action when a text field is focused.
         * `Escape`: Closes the active dialog, context menu or the Commit Details View.
     * Resize the width of each column, and show/hide the Date, Author & Commit columns.
     * Common Emoji Shortcodes are automatically replaced with the corresponding emoji in commit messages (including all [gitmoji](https://gitmoji.carloscuesta.me/)). Custom Emoji Shortcode mappings can be defined in `git-graph.customEmojiShortcodeMappings`.
 * A broad range of configurable settings (e.g. graph style, branch colours, and more...). See the 'Extension Settings' section below for more information.
 * "Git Graph" launch button in the Status Bar
 * "Git Graph: View Git Graph" launch command in the Command Palette
+
+## History and repository workflows
+
+Use the history icon for full-history search. The **More actions** menu contains file history, worktrees, visual rebase, operation status, and layout controls.
+
+- Viewport rendering keeps table rows and graph elements limited to the visible area. Selected commits and comparison anchors remain available while scrolling.
+- **Search history** searches commit subjects across all repository references. Filter by author, date, or file. A commit hash of at least seven characters opens that commit.
+- **File history** follows renames from a branch, tag, or commit. Right-click a file in commit details to start from that revision.
+- **Worktrees** lists related worktrees. Create one from an existing branch or commit, open it in another window, or remove it. Git refuses dirty or locked worktrees.
+- **Visual rebase** prepares a plan for the current branch. Reorder commits and choose pick, reword, edit, squash, fixup, or drop. The visual planner supports linear ranges of 1–500 commits. Ranges containing merges use the existing terminal rebase workflow.
+- **Operation status** shows rebase, merge, cherry-pick, and revert conflicts. Open VS Code's merge editor, stage resolved files, and continue or abort.
+- **Layout** collapses unlabelled linear runs and pins branches selected from the repository. Use **Highlight selected ancestry** in **More actions** to emphasize a commit path. Merge points, references, and selected commits stay visible. Expand any collapsed group to inspect its commits.
+
+Find and full-history search use fzf v2 scoring by default. Ordered letters can match across gaps. Contiguous matches and word boundaries affect ranking. Uppercase terms use case-sensitive matching. Exact text and regular expressions remain available.
+
+Fuzzy queries support space-separated terms, `'exact`, `^prefix`, `suffix$`, `!exclude`, and `|` alternatives. Full-history results highlight matched characters. Use the arrow keys and Enter to select a result. Find searches loaded history, including collapsed commits. **Search history** also searches commits that the graph has not loaded.
+
+Focus a commit row to use Up, Down, Home, and End. Enter opens details, and Shift+F10 opens its context menu. Context menus support arrow keys, Enter, and Escape. Rows expose commit summaries and their history positions to assistive technology. Long reference labels have full-name tooltips.
+
+History data and topology remain in memory. Loading another page still fetches the requested history prefix. Virtualization bounds rendered elements, not all memory or Git work. Full-history search builds a reusable index on its first query; later queries reuse it until references change.
 
 ## Theme integration
 

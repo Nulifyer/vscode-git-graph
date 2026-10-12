@@ -53,13 +53,13 @@ class ContextMenu {
 			let groupHtml = '';
 			for (let j = 0; j < actions[i].length; j++) {
 				if (actions[i][j].visible) {
-					groupHtml += '<li class="contextMenuItem" data-index="' + handlerId++ + '">' + (checked ? '<span class="contextMenuItemCheck">' + (actions[i][j].checked ? SVG_ICONS.check : '') + '</span>' : '') + actions[i][j].title + '</li>';
+					groupHtml += '<li role="' + (checked ? 'menuitemcheckbox' : 'menuitem') + '" tabindex="-1"' + (checked ? ' aria-checked="' + !!actions[i][j].checked + '"' : '') + ' class="contextMenuItem" data-index="' + handlerId++ + '">' + (checked ? '<span class="contextMenuItemCheck">' + (actions[i][j].checked ? SVG_ICONS.check : '') + '</span>' : '') + actions[i][j].title + '</li>';
 					handlers.push(actions[i][j].onClick);
 				}
 			}
 
 			if (groupHtml !== '') {
-				if (html !== '') html += '<li class="contextMenuDivider"></li>';
+				if (html !== '') html += '<li role="separator" class="contextMenuDivider"></li>';
 				html += groupHtml;
 			}
 		}
@@ -67,6 +67,8 @@ class ContextMenu {
 		if (handlers.length === 0) return; // No context menu actions are visible
 
 		const menu = document.createElement('ul');
+		menu.setAttribute('role', 'menu');
+		menu.setAttribute('aria-label', 'Git actions');
 		menu.className = 'contextMenu' + (checked ? ' checked' : '') + (className !== null ? ' ' + className : '');
 		menu.style.opacity = '0';
 		menu.innerHTML = html;
@@ -94,6 +96,15 @@ class ContextMenu {
 			this.close();
 			handlers[parseInt((<HTMLElement>(<Element>e.target).closest('.contextMenuItem')!).dataset.index!)]();
 		});
+
+		menu.addEventListener('keydown', event => {
+			const items = [...menu.querySelectorAll<HTMLElement>('.contextMenuItem')], index = items.indexOf(document.activeElement as HTMLElement);
+			if (['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(event.key)) {
+				const next = event.key === 'Home' ? 0 : event.key === 'End' ? items.length - 1 : (index + (event.key === 'ArrowDown' ? 1 : -1) + items.length) % items.length;
+				items[next].focus(); handledEvent(event);
+			} else if (event.key === 'Enter' || event.key === ' ') { handledEvent(event); items[index]?.click(); } else if (event.key === 'Escape') { const target = this.target && this.target.type !== TargetType.Repo ? this.target.elem : null; this.close(); target?.focus(); handledEvent(event); }
+		});
+		menu.querySelector<HTMLElement>('.contextMenuItem')!.focus();
 
 		menu.addEventListener('click', (e) => {
 			// The user clicked on the context menu (but not a specific item) => keep the context menu open to allow the user to reattempt clicking on a specific item

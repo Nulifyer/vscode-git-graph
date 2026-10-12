@@ -1,3 +1,4 @@
+import { RepositoryTools } from './repositoryTools';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { AvatarManager } from './avatarManager';
@@ -25,6 +26,7 @@ export class GitGraphView extends Disposable {
 	private readonly repoFileWatcher: RepoFileWatcher;
 	private readonly repoManager: RepoManager;
 	private readonly logger: Logger;
+	private readonly repositoryTools: RepositoryTools;
 	private isGraphViewLoaded: boolean = false;
 	private isPanelVisible: boolean = true;
 	private currentRepo: string | null = null;
@@ -83,6 +85,7 @@ export class GitGraphView extends Disposable {
 		this.extensionState = extensionState;
 		this.repoManager = repoManager;
 		this.logger = logger;
+		this.repositoryTools = new RepositoryTools((repo, args, env) => this.dataSource.executeGit(repo, args, env), path.join(extensionState.getGlobalStoragePath(), 'rebase-plans'), path.join(extensionPath, 'resources', 'rebase-editor.cjs'));
 		this.loadViewTo = loadViewTo;
 
 		const config = getConfig();
@@ -168,6 +171,9 @@ export class GitGraphView extends Disposable {
 	 * @param msg The message that was received.
 	 */
 	private async respondToMessage(msg: RequestMessage) {
+		if (msg.command === 'repositoryTool' && ['search', 'operation', 'worktrees', 'openWorktree', 'openConflict'].includes(msg.tool?.kind)) {
+			await this.handleMessage(msg); return;
+		}
 		this.repoFileWatcher.mute();
 		try {
 			await this.handleMessage(msg);
@@ -180,6 +186,18 @@ export class GitGraphView extends Disposable {
 		let errorInfos: ErrorInfo[];
 
 		switch (msg.command) {
+			case 'repositoryTool':
+				try {
+					if (typeof msg.repo !== 'string' || !Object.prototype.hasOwnProperty.call(this.repoManager.getRepos(), msg.repo)) throw new Error('Choose a registered repository');
+					const result = await this.repositoryTools.execute(msg.repo, msg.tool);
+					if (result.kind === 'open') {
+						await vscode.commands.executeCommand(result.merge ? 'git.openMergeEditor' : 'vscode.openFolder', vscode.Uri.file(result.path), !result.merge);
+					}
+					this.sendMessage({ command: 'repositoryTool', repo: msg.repo, requestId: msg.requestId, result, error: null });
+				} catch (error) {
+					this.sendMessage({ command: 'repositoryTool', repo: msg.repo, requestId: msg.requestId, result: null, error: error instanceof Error ? error.message : String(error) });
+				}
+				break;
 			case 'addRemote':
 				this.sendMessage({
 					command: 'addRemote',

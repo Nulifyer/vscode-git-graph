@@ -1,3 +1,5 @@
+import type { RepositoryToolAction, RepositoryToolResult } from './utils/repositoryToolTypes';
+export type { RepositoryToolAction, RepositoryToolResult, RebasePlan, RebaseEntry, HistoryEntry, OperationState, Worktree } from './utils/repositoryToolTypes';
 /* Git Interfaces / Types */
 
 export interface GitCommit {
@@ -1247,7 +1249,10 @@ export interface ResponseViewScm extends ResponseWithErrorInfo {
 	readonly command: 'viewScm';
 }
 
-export type RequestMessage =
+export interface RequestRepositoryTool { command: 'repositoryTool'; repo: string; requestId: number; tool: RepositoryToolAction }
+export interface ResponseRepositoryTool { command: 'repositoryTool'; repo: string; requestId: number; result: RepositoryToolResult | null; error: string | null }
+
+export type RequestMessage = RequestRepositoryTool |
 	RequestAddRemote
 	| RequestAddTag
 	| RequestApplyStash
@@ -1311,7 +1316,7 @@ export type RequestMessage =
 	| RequestViewFileAtRevision
 	| RequestViewScm;
 
-export type ResponseMessage =
+export type ResponseMessage = ResponseRepositoryTool |
 	ResponseAddRemote
 	| ResponseAddTag
 	| ResponseApplyStash

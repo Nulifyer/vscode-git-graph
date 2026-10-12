@@ -263,3 +263,32 @@
 	margin-left:5px;
 	vertical-align:middle;
 }
+
+/* Repository settings use the editor widget surface and readable form sections. */
+#settingsWidget { width: 440px; max-width: calc(100vw - 32px); right: 16px; box-sizing: border-box; padding: 0 16px 16px; border: 1px solid var(--vscode-widget-border, var(--vscode-contrastBorder, var(--git-graph-border))); color: var(--vscode-foreground); fill: var(--vscode-icon-foreground, var(--vscode-foreground)); border-radius: 0 0 4px 4px; }
+#settingsWidget h2 { margin: 12px 0; padding-right: 28px; text-align: left; font-size: 14px; font-weight: 600; }
+.settingsSection, .settingsSection.general { padding: 12px 0; }
+.settingsSection.centered, .settingsSection h3, .settingsSectionButtons { text-align: left; }
+.settingsSection h3 { font-size: 13px; margin: 0 0 8px; }
+.settingsSection > table { table-layout: fixed; }
+.settingsSection > table th, .settingsSection > table td { white-space: normal; overflow-wrap: anywhere; }
+.settingsSection > table td.leftWithEllipsis { width: auto; }
+.settingsSection > table td.btns { width: 48px; }
+.settingsSection.general > table td:first-child { width: 120px; }
+.settingsSection:before { background: var(--git-graph-border); opacity: 1; }
+.settingsSectionButtons { padding-top: 8px; }
+.settingsSectionButtons > div { color: var(--vscode-textLink-foreground); }
+.settingsSectionButtons > div:hover { color: var(--vscode-textLink-activeForeground); }
+#settingsClose { top: 10px; right: 12px; border-radius: 3px; }
+#settingsClose:hover { background: var(--vscode-toolbar-hoverBackground); }
+
+#settingsWidget:not(.active) { visibility: hidden; pointer-events: none; }
+.settingsSection > table:has(.remoteBtns) th:first-child { width: 76px; }
+.settingsSection > table:has(.remoteBtns) th:nth-child(3) { width: 42px; }
+.settingsSection > table:has(.remoteBtns) th:last-child { width: 48px; }
+.settingsSection > table:has(.remoteBtns) td.leftWithEllipsis { white-space: nowrap; }
+
+#settingsWidget h2 { position: sticky; top: 0; z-index: 1; padding: 12px 28px 12px 0; margin: 0; background: var(--vscode-editorWidget-background); }
+#settingsClose { position: fixed; right: 28px; }
+
+.settingsSection > table td.leftWithEllipsis { white-space: nowrap; }

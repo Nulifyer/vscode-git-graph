@@ -37,13 +37,13 @@ async function buildSource() {
 
 async function buildWeb() {
 	await compile('web');
-	const names = ['utils', 'contextMenu', 'dialog', 'dropdown', 'findWidget', 'graph', 'settingsWidget', 'textFormatter', 'main'];
+	const names = ['utils', 'contextMenu', 'dialog', 'dropdown', 'findWidget', 'graph', 'settingsWidget', 'textFormatter', 'repositoryWorkbench', 'main'];
 	const sources = await Promise.all(names.map(name => readFile(path.join(root, '.build', 'web', 'web', name + '.js'), 'utf8')));
 	// The current frontend shares script globals. Keep its initialization order during migration.
 	const entrypoint = path.join(root, '.build', 'webview-entry.js');
 	const result = await Bun.build({
 		entrypoints: [entrypoint],
-		files: { [entrypoint]: sources.join('\n') },
+		files: { [entrypoint]: 'import {historyViewport, foldHistory, pinnedHistoryLanes} from \'./web/src/utils/historyViewport.js\';\nimport {HistorySearch, searchText} from \'./web/src/utils/historySearch.js\';\n' + sources.join('\n') },
 		target: 'browser',
 		format: 'iife',
 		minify: !debug,

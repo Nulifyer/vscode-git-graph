@@ -86,6 +86,7 @@ type DialogTarget = {
  */
 class Dialog {
 	private elem: HTMLElement | null = null;
+	private previousFocus: HTMLElement | null = null;
 	private target: DialogTarget | null = null;
 	private actioned: (() => void) | null = null;
 	private type: DialogType | null = null;
@@ -334,6 +335,7 @@ class Dialog {
 	private show(type: DialogType, html: string, actionName: string | null, secondaryActionName: string, actioned: (() => void) | null, secondaryActioned: (() => void) | null, target: DialogTarget | null) {
 		closeDialogAndContextMenu();
 
+		this.previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
 		this.type = type;
 		this.target = target;
 		eventOverlay.create('dialogBacking', null, null);
@@ -341,22 +343,32 @@ class Dialog {
 		const dialog = document.createElement('div'), dialogContent = document.createElement('div');
 		dialog.className = 'dialog';
 		dialogContent.className = 'dialogContent';
-		dialogContent.innerHTML = html + '<br>' + (actionName !== null ? '<div id="dialogAction" class="roundedBtn">' + actionName + '</div>' : '') + '<div id="dialogSecondaryAction" class="roundedBtn">' + secondaryActionName + '</div>';
-		dialog.appendChild(dialogContent);
+		dialog.setAttribute('role', 'dialog');
+		dialog.setAttribute('aria-modal', 'true');
+		dialog.setAttribute('aria-label', actionName ?? (type === DialogType.ActionRunning ? 'Git operation' : 'Git Graph message'));
+		dialogContent.innerHTML = html;
+		const footer = document.createElement('div');
+		footer.className = 'dialogFooter';
+		footer.innerHTML = '<button type="button" id="dialogSecondaryAction" class="roundedBtn">' + escapeHtml(secondaryActionName) + '</button>' + (actionName !== null ? '<button type="button" id="dialogAction" class="roundedBtn">' + escapeHtml(actionName) + '</button>' : '');
+		dialog.append(dialogContent, footer);
 		this.elem = dialog;
 		document.body.appendChild(dialog);
 
-		let docHeight = document.body.clientHeight, dialogHeight = dialog.clientHeight + 2;
-		if (type !== DialogType.Form && dialogHeight > 0.8 * docHeight) {
-			dialogContent.style.height = Math.round(0.8 * docHeight - 22) + 'px';
-			dialogHeight = Math.round(0.8 * docHeight);
-		}
-		dialog.style.top = Math.max(Math.round((docHeight - dialogHeight) / 2), 10) + 'px';
 		if (actionName !== null && actioned !== null) {
 			document.getElementById('dialogAction')!.addEventListener('click', actioned);
 			this.actioned = actioned;
 		}
 		document.getElementById('dialogSecondaryAction')!.addEventListener('click', secondaryActioned !== null ? secondaryActioned : () => this.close());
+		dialog.addEventListener('keydown', (event) => {
+			if (event.key !== 'Tab') return;
+			const focusable = Array.from(dialog.querySelectorAll<HTMLElement>('button, input, [tabindex]')).filter((element) => !element.hasAttribute('disabled') && element.tabIndex >= 0);
+			const index = focusable.indexOf(document.activeElement as HTMLElement);
+			const next = event.shiftKey ? (index <= 0 ? focusable.length - 1 : index - 1) : (index + 1) % focusable.length;
+			focusable[next]?.focus();
+			event.preventDefault();
+		});
+		(document.getElementById(actionName !== null ? 'dialogAction' : 'dialogSecondaryAction') as HTMLElement).focus();
+
 
 		if (this.target !== null && this.target.type !== TargetType.Repo) {
 			alterClass(this.target.elem, CLASS_DIALOG_ACTIVE, true);
@@ -378,6 +390,8 @@ class Dialog {
 		this.customSelects = {};
 		this.actioned = null;
 		this.type = null;
+		if (this.previousFocus?.isConnected) this.previousFocus.focus();
+		this.previousFocus = null;
 	}
 
 	/**
