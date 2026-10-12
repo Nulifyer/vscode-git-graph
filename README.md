@@ -1,6 +1,6 @@
 # Git Graph for Visual Studio Code
 
-This is the local build of [the GitHub fork](https://github.com/Nulifyer/vscode-git-graph), maintained by [nulifyer](https://github.com/Nulifyer), derived from [Michael Hutchison's Git Graph](https://github.com/mhutchie/vscode-git-graph). It uses extension ID `nulifyer.git-graph` and targets stable VS Code 1.141.0 or newer. The original attribution and license remain.
+This is [the GitHub fork](https://github.com/Nulifyer/vscode-git-graph), maintained by [nulifyer](https://github.com/Nulifyer), derived from [Michael Hutchison's Git Graph](https://github.com/mhutchie/vscode-git-graph). It uses extension ID `nulifyer.git-graph` and targets stable VS Code 1.141.0 or newer. The original attribution and license remain.
 
 View a Git Graph of your repository, and easily perform Git actions from the graph. Configurable to look the way you want!
 
@@ -167,13 +167,21 @@ This extension contributes the following commands:
 
 ## Release Notes
 
-Local changes are recorded in the bundled CHANGELOG.md. [Upstream release history](https://github.com/mhutchie/vscode-git-graph/blob/d7f43f4/CHANGELOG.md) covers the original versions.
+Fork release notes are recorded in the bundled CHANGELOG.md. [Upstream release history](https://github.com/mhutchie/vscode-git-graph/blob/d7f43f4/CHANGELOG.md) covers the original versions.
 
-## Local installation
+## Installation
 
-This build is not published to the Marketplace. Disable the original `mhutchie.git-graph` extension before enabling this build, because both register the same Git Graph commands.
+Disable the original `mhutchie.git-graph` extension before enabling `nulifyer.git-graph`, because both register the same Git Graph commands.
 
-Build and install the local VSIX:
+Install [Git Graph from the Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=nulifyer.git-graph):
+
+```bash
+code --install-extension nulifyer.git-graph
+```
+
+For manual installation, download the VSIX and SHA-256 checksum from [the GitHub release](https://github.com/Nulifyer/vscode-git-graph/releases). Installed users do not need Bun.
+
+To build and install from source:
 
 ```bash
 bun run package

@@ -1,10 +1,11 @@
 # Change Log
 
-## 1.31.3: local build
+## 1.31.3 - 2026-10-12
 
 - Pair badge foreground and background colors for inactive branch, remote, tag, and tooltip labels.
 - Preserve label color pairs on selected and hovered rows.
 - Add real-history profiling through automatic webview scrolling. Check inactive label contrast in the host test.
+- Publish verified VSIX packages and checksums on GitHub releases, then publish the same package to the Marketplace.
 
 ## 1.31.2: local build
 
@@ -26,7 +27,7 @@
 - Remove upstream lifecycle telemetry and the inherited GitLab API credential.
 - Validate the graph in the real extension host. Add guidance for host service-worker startup failures.
 
-The earlier entries below describe the original upstream releases. This local build is not published to the Marketplace.
+Versions 1.31.0 through 1.31.2 were local development builds. The earlier entries below describe the original upstream releases.
 
 
 ## 1.30.0 - 2021-04-05

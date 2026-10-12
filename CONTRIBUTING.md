@@ -1,6 +1,6 @@
 # Contributing to Git Graph
 
-This local build is maintained by [nulifyer](https://github.com/Nulifyer). The original project is [Michael Hutchison's Git Graph](https://github.com/mhutchie/vscode-git-graph). Preserve the original license and source attribution.
+This fork is maintained by [nulifyer](https://github.com/Nulifyer). The original project is [Michael Hutchison's Git Graph](https://github.com/mhutchie/vscode-git-graph). Preserve the original license and source attribution.
 
 Use [the fork repository](https://github.com/Nulifyer/vscode-git-graph) and [its issue tracker](https://github.com/Nulifyer/vscode-git-graph/issues) for contributions and support.
 
@@ -35,7 +35,7 @@ The packaging tool is a pinned local dependency. Fully quit VS Code and reopen i
 
 ## Distribution
 
-This build is not published to the Marketplace. The existing license prohibits distributing derivative works. Changing maintainer metadata does not change those terms.
+The existing license prohibits distributing derivative works. Changing maintainer metadata does not change those terms.
 
 To test an installed custom theme, set `VSCODE_TEST_THEME_EXTENSION` to its extension directory and `VSCODE_TEST_THEME_NAME` to its theme ID. Set `VSCODE_TEST_GRAPH_COLOURS` to a JSON array to check a custom graph palette. All configuration changes use the temporary test profile.
 
