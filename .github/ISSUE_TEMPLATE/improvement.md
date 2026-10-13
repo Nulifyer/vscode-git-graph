@@ -1,14 +1,15 @@
 ---
 name: Improvement
-about: Suggest an improvement for this extension
+about: Improve an existing Git Graphity workflow
 title: ''
 labels: improvement
 assignees: Nulifyer
-
 ---
 
-**Describe the improvement that you'd like**
-A clear and concise description of what you'd like to be improved in Git Graphity.
+## Current behavior
 
-**Additional context (optional)**
-Add any other context or screenshots about the improvement here.
+Describe the existing workflow and what makes it difficult to use.
+
+## Suggested improvement
+
+Explain the change and how it would help. Include examples or screenshots when useful.

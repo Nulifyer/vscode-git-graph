@@ -1,17 +1,17 @@
 ---
 name: Question
-about: Do you have a question about Git Graphity?
+about: Ask about using Git Graphity
 title: ''
 labels: question
 assignees: Nulifyer
-
 ---
 
-If you have a simple question, please chat with us on [Discord](https://discord.gg/ZRRDYzt)! This allows myself and the Git Graphity community to answer your question as fast as possible.
+Check the [getting-started guide](https://github.com/Nulifyer/vscode-git-graph#readme) and [release notes](https://github.com/Nulifyer/vscode-git-graph/blob/develop/CHANGELOG.md) before opening a question.
 
-More information for the following topics can be found at the provided links:
-* [Functionality currently available in Git Graphity](https://github.com/mhutchie/vscode-git-graph/blob/master/README.md#features)
-* [Git Actions & Context Menus](https://github.com/mhutchie/vscode-git-graph/wiki/Context-Menus)
-* [Extension Settings](https://github.com/mhutchie/vscode-git-graph/wiki/Extension-Settings)
+## Question
 
-Otherwise, ask any question here! If you're having difficulty explaining your question, sometimes providing a screenshot can help.
+Describe what you are trying to do and where you need help.
+
+## Context
+
+Include the Git Graphity version and workspace type. Add screenshots when they help explain the question.

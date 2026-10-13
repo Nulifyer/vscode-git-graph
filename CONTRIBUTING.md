@@ -1,68 +1,84 @@
 # Contributing to Git Graphity
 
-This fork is maintained by [nulifyer](https://github.com/Nulifyer). The original project is [Michael Hutchison's Git Graph](https://github.com/mhutchie/vscode-git-graph). Preserve the original license and source attribution.
+Use the [issue tracker](https://github.com/Nulifyer/vscode-git-graph/issues) for bugs, questions, and feature proposals. Describe the behavior you want to change before starting a large contribution.
 
-Use [the fork repository](https://github.com/Nulifyer/vscode-git-graph) and [its issue tracker](https://github.com/Nulifyer/vscode-git-graph/issues) for contributions and support.
+## Set up
 
-## Development
-
-Use Bun 1.4.3, Node 24 or newer, and stable VS Code 1.141.0 or newer.
+Use Bun 1.4.3, Node 24 or newer, Git, and VS Code 1.141.0 or newer.
 
 ```bash
 bun install --frozen-lockfile
 bun run check
 ```
 
-The extension runs in VS Code's Node extension host. Bun owns package installation, build orchestration, and webview minification. TypeScript 6.0.3 is retained until TypeScript ESLint and ts-jest support TypeScript 7.
+Bun handles installation and builds. The extension runs in VS Code's Node extension host. Keep dependency versions pinned and include lockfile updates when changing dependencies.
 
-The frontend reads shared types directly from `src/types.ts`. It does not require a prior backend build. Run `bun run typecheck` to check the source, webview, tests, and build scripts. Build scripts skip third-party Bun declaration checks; application and test declarations remain checked.
+## Build and debug
 
-## Debugging and verification
+```bash
+bun run compile
+```
 
-Press F5 to open an Extension Development Host. Build first with `bun run compile`. Use `bun run compile-web-debug` and `Developer: Open Webview Developer Tools` to inspect the frontend.
+Press F5 in VS Code to open an Extension Development Host. Use `bun run compile-web-debug` and **Developer: Open Webview Developer Tools** to inspect the frontend.
 
-Run `bun run test-extension-host` to test activation, rendered commit rows and graph SVG, commit details opened by a webview click, and real Git parsing. The test also checks live theme changes in dark, light, and both high-contrast themes. Set `VSCODE_EXECUTABLE_PATH` to use an installed VS Code executable. Otherwise the test downloads the release specified by the manifest. Linux requires a display; CI uses `xvfb-run`.
-
-## Local installation
-
-Git Graphity uses separate command IDs and settings. Previous extension settings and saved state do not transfer automatically.
+To build and install a local VSIX:
 
 ```bash
 bun run package-and-install
 ```
 
-The packaging tool is a pinned local dependency. Fully quit VS Code and reopen it after replacing the extension. Installed users do not need Bun.
+Git Graphity uses the `git-graphity` command and settings namespace. Repository configuration lives in `.vscode/vscode-git-graphity.json`. Earlier extension identities have separate settings and saved state.
 
-## Distribution
+## Validate a change
 
-The existing license prohibits distributing derivative works. Changing maintainer metadata does not change those terms.
+Run the checks that cover the changed behavior:
 
-To test an installed custom theme, set `VSCODE_TEST_THEME_EXTENSION` to its extension directory and `VSCODE_TEST_THEME_NAME` to its theme ID. Set `VSCODE_TEST_GRAPH_COLOURS` to a JSON array to check a custom graph palette. All configuration changes use the temporary test profile.
+| Command | Checks |
+| --- | --- |
+| `bun run lint` | Source, test, frontend, and build-script lint rules |
+| `bun run typecheck` | TypeScript types across all packages |
+| `bun run test -- tests/<owner>.test.ts` | A focused unit suite |
+| `bun run check` | Production build and the full unit suite |
+| `bun run test-extension-host` | Activation, rendered history, commit details, and live theme changes |
+| `bun run test-history-workflows` | Search, file history, comparisons, reviews, worktrees, and rebase workflows |
+| `bun run package` | Installable VSIX generation |
 
-## GitHub releases and Marketplace publishing
+The host checks use disposable repositories and profiles. Linux needs a graphical display; CI runs them with `xvfb-run`. Set `VSCODE_EXECUTABLE_PATH` to the VS Code executable to use an installed version. Otherwise, the harness downloads the manifest's target version.
 
-The `Release` workflow runs when a GitHub release is published. Its tag must be `v` followed by the committed `package.json` version. It rejects mismatches rather than changing the version during CI.
+To test a packaged extension, set `EXTENSION_UNDER_TEST` to its extracted `extension` directory and run the test script directly. The compile wrapper clears `.build`.
 
-The reusable `Build & Test` workflow runs lint, typechecking, and tests on Node 24 and 26. It builds one VSIX with the Bun version pinned in `packageManager`, then tests that packaged extension in VS Code. The release workflow attaches the verified VSIX and its SHA-256 checksum to the GitHub release. Marketplace publishing downloads those assets, verifies the checksum, and publishes that file without rebuilding it.
+```bash
+EXTENSION_UNDER_TEST=/path/to/extracted/extension bun scripts/test-extension-host.ts
+EXTENSION_UNDER_TEST=/path/to/extracted/extension bun scripts/test-history-workflows.ts
+```
 
-Add an Azure DevOps Marketplace Manage PAT for the `nulifyer` publisher as the repository secret `VSCE_PAT`, matching the guget setup. Enter the token through the hidden CLI prompt:
+For a custom theme, set `VSCODE_TEST_THEME_EXTENSION` to its extension directory and `VSCODE_TEST_THEME_NAME` to its theme ID. Set `VSCODE_TEST_GRAPH_COLOURS` to a JSON array to check an explicit graph palette. These settings affect only the temporary test profile.
+
+## Submit a change
+
+Explain the problem, the resulting behavior, and the checks you ran. Add regression coverage for behavior changes. Review the package contents when changing resources, runtime paths, or packaging rules.
+
+Keep credentials, generated packages, and local configuration out of commits. Preserve license notices and follow the [code of conduct](CODE_OF_CONDUCT.md).
+
+## Release
+
+Update `package.json` and `CHANGELOG.md`, then commit the release changes. Use a new numeric version and keep existing published tags intact.
+
+```bash
+release_tag="v$(node -p 'require("./package.json").version')"
+git tag -a "$release_tag" -m "Git Graphity ${release_tag#v}"
+git push origin develop "$release_tag"
+gh release create "$release_tag" --repo Nulifyer/vscode-git-graph --verify-tag --generate-notes
+```
+
+Publishing the GitHub release starts the `Release` workflow. The tag must match the committed manifest version. A GitHub prerelease uses the Marketplace prerelease channel.
+
+The workflow checks Node 24 and 26, builds one VSIX, and tests that extracted package in VS Code. It attaches the verified VSIX and SHA-256 checksum to the GitHub release. Marketplace publication downloads those assets, verifies the checksum, and publishes the same file.
+
+The Marketplace step uses the repository secret `VSCE_PAT`. Enter a publisher credential through the hidden CLI prompt:
 
 ```bash
 gh secret set VSCE_PAT --repo Nulifyer/vscode-git-graph
 ```
 
-The GitHub release upload uses the automatic `GITHUB_TOKEN`; it does not need a separate GitHub PAT. The Marketplace PAT is exposed only to the publishing step.
-
-After committing and pushing a version change, tag that commit and push the tag. Publish the GitHub release to start the workflow. For the current version:
-
-```bash
-git tag v1.32.5
-git push origin v1.32.5
-gh release create v1.32.5 --verify-tag --generate-notes
-```
-
-A GitHub prerelease uses the Marketplace prerelease channel. Keep the numeric version and select the GitHub prerelease option. The workflow uses `--pre-release` when packaging and publishing.
-
-If Marketplace publishing fails, fix the secret or publisher access and rerun only the failed job. The VSIX remains downloadable from the GitHub release. Repeated Marketplace publication skips versions already published.
-
-Microsoft documents retirement of global Azure DevOps PATs on December 1, 2026. Follow the [official authentication guidance](https://code.visualstudio.com/api/working-with-extensions/publishing-extension#secure-automated-publishing-to-visual-studio-marketplace) when migrating this workflow to Entra ID authentication.
+GitHub release uploads use the automatic `GITHUB_TOKEN`. If publication fails, inspect the failed job before retrying it. A successful upload does not establish that Marketplace validation or indexing is complete.

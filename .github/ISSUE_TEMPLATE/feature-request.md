@@ -1,14 +1,19 @@
 ---
-name: Feature Request
-about: Suggest an idea for this extension
+name: Feature request
+about: Propose a new Git Graphity capability
 title: ''
 labels: feature request
 assignees: Nulifyer
-
 ---
 
-**Describe the feature that you'd like**
-A clear and concise description of what you'd like to be included in Git Graphity.
+## What are you trying to do?
 
-**Additional context (optional)**
-Add any other context or screenshots about the feature request here.
+Describe the workflow or problem this feature would address.
+
+## Proposed behavior
+
+Explain how you would use the feature. Include an example or screenshot when helpful.
+
+## Alternatives
+
+Describe any existing workaround or other approach you considered.

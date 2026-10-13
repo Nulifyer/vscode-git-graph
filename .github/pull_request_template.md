@@ -1,5 +1,11 @@
-Issue Number / Link: (If this is a minor change, then an issue does not need to be created and this line can be deleted.)
+## Problem and resulting behavior
 
-Summary of the issue:
+Explain what this change fixes or adds. Link the related issue, if there is one.
 
-Description outlining how this pull request resolves the issue:
+## Validation
+
+List the checks you ran and what they verified. Include screenshots for visible UI changes.
+
+## Compatibility
+
+Describe changes to settings, saved state, command IDs, or package contents, if applicable.
