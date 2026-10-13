@@ -1,5 +1,10 @@
 # Change Log
 
+## 1.32.5 - 2026-10-13
+
+- Present Git Graphity with product-focused features, installation instructions, and a short getting-started guide.
+- Remove the fork narrative from the README. Preserve the original license file.
+
 ## 1.32.4 - 2026-10-13
 
 - Rebrand the extension as Git Graphity with identifier `nulifyer.git-graphity`.

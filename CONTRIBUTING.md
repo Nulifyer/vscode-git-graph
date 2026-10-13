@@ -56,9 +56,9 @@ The GitHub release upload uses the automatic `GITHUB_TOKEN`; it does not need a 
 After committing and pushing a version change, tag that commit and push the tag. Publish the GitHub release to start the workflow. For the current version:
 
 ```bash
-git tag v1.32.4
-git push origin v1.32.4
-gh release create v1.32.4 --verify-tag --generate-notes
+git tag v1.32.5
+git push origin v1.32.5
+gh release create v1.32.5 --verify-tag --generate-notes
 ```
 
 A GitHub prerelease uses the Marketplace prerelease channel. Keep the numeric version and select the GitHub prerelease option. The workflow uses `--pre-release` when packaging and publishing.
