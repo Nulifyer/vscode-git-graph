@@ -8,7 +8,7 @@ assignees: Nulifyer
 ---
 
 **Describe the improvement that you'd like**
-A clear and concise description of what you'd like to be improved in Git Graph.
+A clear and concise description of what you'd like to be improved in Git Graphity.
 
 **Additional context (optional)**
 Add any other context or screenshots about the improvement here.

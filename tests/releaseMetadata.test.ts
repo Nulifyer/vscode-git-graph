@@ -1,10 +1,10 @@
 import { releaseMetadata } from '../scripts/release-metadata';
 
-const manifest = { name: 'git-graph-modern', publisher: 'nulifyer', version: '1.31.4', packageManager: 'bun@1.4.3' };
+const manifest = { name: 'git-graphity', publisher: 'nulifyer', version: '1.31.4', packageManager: 'bun@1.4.3' };
 
 describe('Release metadata guards', () => {
 	it('accepts a matching release tag and derives the VSIX filename', () => {
-		expect(releaseMetadata(manifest, 'v1.31.4').vsix_name).toBe('git-graph-modern-1.31.4.vsix');
+		expect(releaseMetadata(manifest, 'v1.31.4').vsix_name).toBe('git-graphity-1.31.4.vsix');
 	});
 
 	it.each(['v1.31.3', '1.31.4', 'v1.31.4-rc.1', 'v1.31.4\nother=value'])('rejects mismatched or malformed tag %s', tag => {
@@ -15,7 +15,7 @@ describe('Release metadata guards', () => {
 		expect(() => releaseMetadata({ ...manifest, version })).toThrow('numeric');
 	});
 
-	it.each(['../graph', 'git-graph\nother=value', 'Git Graph'])('rejects unsafe artifact names: %s', name => {
+	it.each(['../graph', 'git-graphity\nother=value', 'Git Graphity'])('rejects unsafe artifact names: %s', name => {
 		expect(() => releaseMetadata({ ...manifest, name })).toThrow('filename');
 	});
 

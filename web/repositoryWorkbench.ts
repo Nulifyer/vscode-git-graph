@@ -7,7 +7,7 @@ class RepositoryWorkbench {
 	private lastRepo: string | null = null;
 	private syncing = false;
 
-	constructor(private readonly view: GitGraphView) {
+	constructor(private readonly view: GitGraphityView) {
 		this.lastRepo = view.getCurrentRepository();
 		const toolbar = document.createElement('div');
 		toolbar.className = 'workflowToolbar';
@@ -34,7 +34,7 @@ class RepositoryWorkbench {
 		this.banner.setAttribute('role', 'status');
 		this.banner.hidden = true;
 		document.getElementById('controls')!.append(this.banner);
-		window.addEventListener('git-graph:file-history', event => {
+		window.addEventListener('git-graphity:file-history', event => {
 			const detail = (event as CustomEvent<{ file: string; reference: string }>).detail;
 			this.search(true, detail.file, detail.reference);
 		});

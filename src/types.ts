@@ -222,18 +222,18 @@ export interface GitRepoState {
 }
 
 
-/* Git Graph View Types */
+/* Git Graphity View Types */
 
-export interface GitGraphViewInitialState {
-	readonly config: GitGraphViewConfig;
+export interface GitGraphityViewInitialState {
+	readonly config: GitGraphityViewConfig;
 	readonly lastActiveRepo: string | null;
-	readonly loadViewTo: LoadGitGraphViewTo;
+	readonly loadViewTo: LoadGitGraphityViewTo;
 	readonly repos: GitRepoSet;
 	readonly loadRepoInfoRefreshId: number;
 	readonly loadCommitsRefreshId: number;
 }
 
-export interface GitGraphViewConfig {
+export interface GitGraphityViewConfig {
 	readonly commitDetailsView: CommitDetailsViewConfig;
 	readonly commitOrdering: CommitOrdering;
 	readonly contextMenuActionsVisibility: ContextMenuActionsVisibility;
@@ -264,13 +264,13 @@ export interface GitGraphViewConfig {
 	readonly showTags: boolean;
 }
 
-export interface GitGraphViewGlobalState {
+export interface GitGraphityViewGlobalState {
 	alwaysAcceptCheckoutCommit: boolean;
 	issueLinkingConfig: IssueLinkingConfig | null;
 	pushTagSkipRemoteCheck: boolean;
 }
 
-export interface GitGraphViewWorkspaceState {
+export interface GitGraphityViewWorkspaceState {
 	findIsCaseSensitive: boolean;
 	findIsRegex: boolean;
 	findOpenCommitDetailsView: boolean;
@@ -297,7 +297,7 @@ export interface KeybindingConfig {
 	readonly scrollToStash: string | null;
 }
 
-export type LoadGitGraphViewTo = {
+export type LoadGitGraphityViewTo = {
 	readonly repo: string,
 	readonly commitDetails?: {
 		readonly commitHash: string,
@@ -582,7 +582,7 @@ export interface ResponseWithMultiErrorInfo extends BaseMessage {
 export type ErrorInfo = string | null; // null => no error, otherwise => error message
 
 export const enum ErrorInfoExtensionPrefix {
-	PushTagCommitNotOnRemote = 'VSCODE_GIT_GRAPH:PUSH_TAG:COMMIT_NOT_ON_REMOTE:'
+	PushTagCommitNotOnRemote = 'VSCODE_GIT_GRAPHITY:PUSH_TAG:COMMIT_NOT_ON_REMOTE:'
 }
 
 /* Request / Response Messages */
@@ -959,7 +959,7 @@ export interface ResponseLoadRepos extends BaseMessage {
 	readonly command: 'loadRepos';
 	readonly repos: GitRepoSet;
 	readonly lastActiveRepo: string | null;
-	readonly loadViewTo: LoadGitGraphViewTo;
+	readonly loadViewTo: LoadGitGraphityViewTo;
 }
 
 export const enum MergeActionOn {
@@ -1150,7 +1150,7 @@ export interface ResponseRevertCommit extends ResponseWithErrorInfo {
 
 export interface RequestSetGlobalViewState extends BaseMessage {
 	readonly command: 'setGlobalViewState';
-	readonly state: GitGraphViewGlobalState;
+	readonly state: GitGraphityViewGlobalState;
 }
 export interface ResponseSetGlobalViewState extends ResponseWithErrorInfo {
 	readonly command: 'setGlobalViewState';
@@ -1163,7 +1163,7 @@ export interface RequestSetRepoState extends RepoRequest {
 
 export interface RequestSetWorkspaceViewState extends BaseMessage {
 	readonly command: 'setWorkspaceViewState';
-	readonly state: GitGraphViewWorkspaceState;
+	readonly state: GitGraphityViewWorkspaceState;
 }
 export interface ResponseSetWorkspaceViewState extends ResponseWithErrorInfo {
 	readonly command: 'setWorkspaceViewState';

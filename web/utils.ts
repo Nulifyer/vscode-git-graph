@@ -515,8 +515,8 @@ function handledEvent(event: Event) {
  * @param key The key identifying the value to update.
  * @param value The new value.
  */
-function updateGlobalViewState<K extends keyof GG.GitGraphViewGlobalState>(key: K, value: GG.GitGraphViewGlobalState[K]) {
-	(<GG.DeepWriteable<GG.GitGraphViewGlobalState>>globalState)[key] = value;
+function updateGlobalViewState<K extends keyof GG.GitGraphityViewGlobalState>(key: K, value: GG.GitGraphityViewGlobalState[K]) {
+	(<GG.DeepWriteable<GG.GitGraphityViewGlobalState>>globalState)[key] = value;
 	sendMessage({ command: 'setGlobalViewState', state: globalState });
 }
 
@@ -525,8 +525,8 @@ function updateGlobalViewState<K extends keyof GG.GitGraphViewGlobalState>(key: 
  * @param key The key identifying the value to update.
  * @param value The new value.
  */
-function updateWorkspaceViewState<K extends keyof GG.GitGraphViewWorkspaceState>(key: K, value: GG.GitGraphViewWorkspaceState[K]) {
-	(<GG.DeepWriteable<GG.GitGraphViewWorkspaceState>>workspaceState)[key] = value;
+function updateWorkspaceViewState<K extends keyof GG.GitGraphityViewWorkspaceState>(key: K, value: GG.GitGraphityViewWorkspaceState[K]) {
+	(<GG.DeepWriteable<GG.GitGraphityViewWorkspaceState>>workspaceState)[key] = value;
 	sendMessage({ command: 'setWorkspaceViewState', state: workspaceState });
 }
 

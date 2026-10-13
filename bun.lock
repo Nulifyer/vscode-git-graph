@@ -3,7 +3,7 @@
   "configVersion": 1,
   "workspaces": {
     "": {
-      "name": "git-graph-modern",
+      "name": "git-graphity",
       "dependencies": {
         "fzf": "0.5.2",
         "iconv-lite": "0.7.3",

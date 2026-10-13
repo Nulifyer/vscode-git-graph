@@ -11,17 +11,17 @@ import { ConfigurationChangeEvent } from 'vscode';
 import { AvatarEvent, AvatarManager } from '../src/avatarManager';
 import { DataSource } from '../src/dataSource';
 import { ExtensionState } from '../src/extensionState';
-import { GitGraphView, serializeWebviewState, standardiseCspSource } from '../src/gitGraphView';
+import { GitGraphityView, serializeWebviewState, standardiseCspSource } from '../src/gitGraphityView';
 import { Logger } from '../src/logger';
 import { RepoChangeEvent, RepoManager } from '../src/repoManager';
-import { CodeReview, CommitOrdering, GitCommitStash, GitConfigLocation, GitFileStatus, GitGraphViewGlobalState, GitGraphViewWorkspaceState, GitPushBranchMode, GitResetMode, MergeActionOn, PullRequestConfig, PullRequestProvider, RebaseActionOn, RequestMessage, ResponseMessage, TagType } from '../src/types';
+import { CodeReview, CommitOrdering, GitCommitStash, GitConfigLocation, GitFileStatus, GitGraphityViewGlobalState, GitGraphityViewWorkspaceState, GitPushBranchMode, GitResetMode, MergeActionOn, PullRequestConfig, PullRequestProvider, RebaseActionOn, RequestMessage, ResponseMessage, TagType } from '../src/types';
 import * as utils from '../src/utils';
 import { EventEmitter } from '../src/utils/event';
 
 import { waitForExpect } from './helpers/expectations';
 import { mockRepoState } from './helpers/utils';
 
-describe('GitGraphView', () => {
+describe('GitGraphityView', () => {
 	let onDidChangeConfiguration: EventEmitter<ConfigurationChangeEvent>;
 	let onDidChangeGitExecutable: EventEmitter<utils.GitExecutable>;
 	let onDidChangeRepos: EventEmitter<RepoChangeEvent>;
@@ -80,8 +80,8 @@ describe('GitGraphView', () => {
 	});
 
 	afterEach(() => {
-		if (GitGraphView.currentPanel) {
-			GitGraphView.currentPanel.dispose();
+		if (GitGraphityView.currentPanel) {
+			GitGraphityView.currentPanel.dispose();
 		}
 	});
 
@@ -96,23 +96,23 @@ describe('GitGraphView', () => {
 			};
 
 			// Run
-			GitGraphView.createOrShow('/path/to/extension', dataSource, extensionState, avatarManager, repoManager, logger, null);
+			GitGraphityView.createOrShow('/path/to/extension', dataSource, extensionState, avatarManager, repoManager, logger, null);
 
 			// Assert
-			expect(vscode.window.createWebviewPanel).toHaveBeenCalledWith('git-graph', 'Git Graph', vscode.ViewColumn.Two, {
+			expect(vscode.window.createWebviewPanel).toHaveBeenCalledWith('git-graphity', 'Git Graphity', vscode.ViewColumn.Two, {
 				enableScripts: true,
 				localResourceRoots: [vscode.Uri.file(path.join('/path/to/extension', 'media'))],
 				retainContextWhenHidden: true
 			});
-			expect(spyOnLog).toHaveBeenCalledWith('Created Git Graph View');
+			expect(spyOnLog).toHaveBeenCalledWith('Created Git Graphity View');
 		});
 
 		it('Should reveal the existing WebviewPanel (when one exists)', () => {
 			// Setup
-			GitGraphView.createOrShow('/path/to/extension', dataSource, extensionState, avatarManager, repoManager, logger, null);
+			GitGraphityView.createOrShow('/path/to/extension', dataSource, extensionState, avatarManager, repoManager, logger, null);
 
 			// Run
-			GitGraphView.createOrShow('/path/to/extension', dataSource, extensionState, avatarManager, repoManager, logger, null);
+			GitGraphityView.createOrShow('/path/to/extension', dataSource, extensionState, avatarManager, repoManager, logger, null);
 
 			// Assert
 			const mockedWebviewPanel = vscode.getMockedWebviewPanel(0);
@@ -122,12 +122,12 @@ describe('GitGraphView', () => {
 
 		it('Should reveal the existing WebviewPanel (when one exists, but it isn\'t visible)', () => {
 			// Setup
-			GitGraphView.createOrShow('/path/to/extension', dataSource, extensionState, avatarManager, repoManager, logger, { repo: '/path/to/repo' });
+			GitGraphityView.createOrShow('/path/to/extension', dataSource, extensionState, avatarManager, repoManager, logger, { repo: '/path/to/repo' });
 			const mockedWebviewPanel = vscode.getMockedWebviewPanel(0);
 			mockedWebviewPanel.mocks.panel.setVisibility(false);
 
 			// Run
-			GitGraphView.createOrShow('/path/to/extension', dataSource, extensionState, avatarManager, repoManager, logger, { repo: '/path/to/repo' });
+			GitGraphityView.createOrShow('/path/to/extension', dataSource, extensionState, avatarManager, repoManager, logger, { repo: '/path/to/repo' });
 
 			// Assert
 			expect(vscode.window.createWebviewPanel).toHaveBeenCalledTimes(1);
@@ -137,10 +137,10 @@ describe('GitGraphView', () => {
 
 		it('Should reveal the existing WebviewPanel (when one exists), and send loadViewTo', () => {
 			// Setup
-			GitGraphView.createOrShow('/path/to/extension', dataSource, extensionState, avatarManager, repoManager, logger, null);
+			GitGraphityView.createOrShow('/path/to/extension', dataSource, extensionState, avatarManager, repoManager, logger, null);
 
 			// Run
-			GitGraphView.createOrShow('/path/to/extension', dataSource, extensionState, avatarManager, repoManager, logger, { repo: '/path/to/repo' });
+			GitGraphityView.createOrShow('/path/to/extension', dataSource, extensionState, avatarManager, repoManager, logger, { repo: '/path/to/repo' });
 
 			// Assert
 			const mockedWebviewPanel = vscode.getMockedWebviewPanel(0);
@@ -160,11 +160,11 @@ describe('GitGraphView', () => {
 
 		it('Should construct a new WebviewPanel, providing loadViewTo', () => {
 			// Run
-			GitGraphView.createOrShow('/path/to/extension', dataSource, extensionState, avatarManager, repoManager, logger, { repo: '/path/to/repo' });
+			GitGraphityView.createOrShow('/path/to/extension', dataSource, extensionState, avatarManager, repoManager, logger, { repo: '/path/to/repo' });
 
 			// Assert
 			const mockedWebviewPanel = vscode.getMockedWebviewPanel(0);
-			expect(spyOnLog).toHaveBeenCalledWith('Created Git Graph View (active repo: /path/to/repo)');
+			expect(spyOnLog).toHaveBeenCalledWith('Created Git Graphity View (active repo: /path/to/repo)');
 			expect(mockedWebviewPanel.panel.webview.html).toContain('"loadViewTo":{"repo":"/path/to/repo"}');
 		});
 
@@ -173,15 +173,15 @@ describe('GitGraphView', () => {
 			vscode.window.activeTextEditor = undefined;
 
 			// Run
-			GitGraphView.createOrShow('/path/to/extension', dataSource, extensionState, avatarManager, repoManager, logger, null);
+			GitGraphityView.createOrShow('/path/to/extension', dataSource, extensionState, avatarManager, repoManager, logger, null);
 
 			// Assert
-			expect(vscode.window.createWebviewPanel).toHaveBeenCalledWith('git-graph', 'Git Graph', vscode.ViewColumn.One, {
+			expect(vscode.window.createWebviewPanel).toHaveBeenCalledWith('git-graphity', 'Git Graphity', vscode.ViewColumn.One, {
 				enableScripts: true,
 				localResourceRoots: [vscode.Uri.file(path.join('/path/to/extension', 'media'))],
 				retainContextWhenHidden: true
 			});
-			expect(spyOnLog).toHaveBeenCalledWith('Created Git Graph View');
+			expect(spyOnLog).toHaveBeenCalledWith('Created Git Graphity View');
 		});
 
 		it('Should construct a WebviewPanel with retainContextWhenHidden set to TRUE', () => {
@@ -189,15 +189,15 @@ describe('GitGraphView', () => {
 			vscode.mockExtensionSettingReturnValue('retainContextWhenHidden', true);
 
 			// Run
-			GitGraphView.createOrShow('/path/to/extension', dataSource, extensionState, avatarManager, repoManager, logger, null);
+			GitGraphityView.createOrShow('/path/to/extension', dataSource, extensionState, avatarManager, repoManager, logger, null);
 
 			// Assert
-			expect(vscode.window.createWebviewPanel).toHaveBeenCalledWith('git-graph', 'Git Graph', vscode.ViewColumn.One, {
+			expect(vscode.window.createWebviewPanel).toHaveBeenCalledWith('git-graphity', 'Git Graphity', vscode.ViewColumn.One, {
 				enableScripts: true,
 				localResourceRoots: [vscode.Uri.file(path.join('/path/to/extension', 'media'))],
 				retainContextWhenHidden: true
 			});
-			expect(spyOnLog).toHaveBeenCalledWith('Created Git Graph View');
+			expect(spyOnLog).toHaveBeenCalledWith('Created Git Graphity View');
 		});
 
 		it('Should construct a WebviewPanel with retainContextWhenHidden set to FALSE', () => {
@@ -205,15 +205,15 @@ describe('GitGraphView', () => {
 			vscode.mockExtensionSettingReturnValue('retainContextWhenHidden', false);
 
 			// Run
-			GitGraphView.createOrShow('/path/to/extension', dataSource, extensionState, avatarManager, repoManager, logger, null);
+			GitGraphityView.createOrShow('/path/to/extension', dataSource, extensionState, avatarManager, repoManager, logger, null);
 
 			// Assert
-			expect(vscode.window.createWebviewPanel).toHaveBeenCalledWith('git-graph', 'Git Graph', vscode.ViewColumn.One, {
+			expect(vscode.window.createWebviewPanel).toHaveBeenCalledWith('git-graphity', 'Git Graphity', vscode.ViewColumn.One, {
 				enableScripts: true,
 				localResourceRoots: [vscode.Uri.file(path.join('/path/to/extension', 'media'))],
 				retainContextWhenHidden: false
 			});
-			expect(spyOnLog).toHaveBeenCalledWith('Created Git Graph View');
+			expect(spyOnLog).toHaveBeenCalledWith('Created Git Graphity View');
 		});
 
 		it('Should construct a WebviewPanel with a colour icon', () => {
@@ -221,7 +221,7 @@ describe('GitGraphView', () => {
 			vscode.mockExtensionSettingReturnValue('tabIconColourTheme', 'colour');
 
 			// Run
-			GitGraphView.createOrShow('/path/to/extension', dataSource, extensionState, avatarManager, repoManager, logger, null);
+			GitGraphityView.createOrShow('/path/to/extension', dataSource, extensionState, avatarManager, repoManager, logger, null);
 
 			// Assert
 			const mockedWebviewPanel = vscode.getMockedWebviewPanel(0);
@@ -233,7 +233,7 @@ describe('GitGraphView', () => {
 			vscode.mockExtensionSettingReturnValue('tabIconColourTheme', 'grey');
 
 			// Run
-			GitGraphView.createOrShow('/path/to/extension', dataSource, extensionState, avatarManager, repoManager, logger, null);
+			GitGraphityView.createOrShow('/path/to/extension', dataSource, extensionState, avatarManager, repoManager, logger, null);
 
 			// Assert
 			const mockedWebviewPanel = vscode.getMockedWebviewPanel(0);
@@ -244,69 +244,69 @@ describe('GitGraphView', () => {
 		});
 
 		describe('WebviewPanel.onDidDispose', () => {
-			it('Should dispose the GitGraphView when the WebviewPanel is disposed', () => {
+			it('Should dispose the GitGraphityView when the WebviewPanel is disposed', () => {
 				// Setup
-				GitGraphView.createOrShow('/path/to/extension', dataSource, extensionState, avatarManager, repoManager, logger, null);
+				GitGraphityView.createOrShow('/path/to/extension', dataSource, extensionState, avatarManager, repoManager, logger, null);
 
 				// Run
 				const mockedWebviewPanel = vscode.getMockedWebviewPanel(0);
 				mockedWebviewPanel.mocks.panel.onDidDispose();
 
 				// Asset
-				expect(GitGraphView.currentPanel).toBeUndefined();
+				expect(GitGraphityView.currentPanel).toBeUndefined();
 			});
 		});
 
 		describe('WebviewPanel.onDidChangeViewState', () => {
 			it('Should transition from visible to not-visible correctly', () => {
 				// Setup
-				GitGraphView.createOrShow('/path/to/extension', dataSource, extensionState, avatarManager, repoManager, logger, null);
+				GitGraphityView.createOrShow('/path/to/extension', dataSource, extensionState, avatarManager, repoManager, logger, null);
 				const mockedWebviewPanel = vscode.getMockedWebviewPanel(0);
-				const spyOnRepoFileWatcherStop = jest.spyOn(GitGraphView.currentPanel!['repoFileWatcher'], 'stop');
+				const spyOnRepoFileWatcherStop = jest.spyOn(GitGraphityView.currentPanel!['repoFileWatcher'], 'stop');
 
 				// Run
 				mockedWebviewPanel.mocks.panel.setVisibility(false);
 
 				// Assert
-				expect(GitGraphView.currentPanel!['currentRepo']).toBeNull();
+				expect(GitGraphityView.currentPanel!['currentRepo']).toBeNull();
 				expect(spyOnRepoFileWatcherStop).toHaveBeenCalledTimes(1);
-				expect(GitGraphView.currentPanel!['isPanelVisible']).toBe(false);
+				expect(GitGraphityView.currentPanel!['isPanelVisible']).toBe(false);
 			});
 
 			it('Should transition from not-visible to visible correctly', () => {
 				// Setup
-				GitGraphView.createOrShow('/path/to/extension', dataSource, extensionState, avatarManager, repoManager, logger, null);
+				GitGraphityView.createOrShow('/path/to/extension', dataSource, extensionState, avatarManager, repoManager, logger, null);
 				const mockedWebviewPanel = vscode.getMockedWebviewPanel(0);
 				mockedWebviewPanel.mocks.panel.setVisibility(false);
-				GitGraphView.currentPanel!['panel']['webview'].html = '';
+				GitGraphityView.currentPanel!['panel']['webview'].html = '';
 
 				// Run
 				mockedWebviewPanel.mocks.panel.setVisibility(true);
 
 				// Assert
 				expect(mockedWebviewPanel.panel.webview.html).not.toBe('');
-				expect(GitGraphView.currentPanel!['isPanelVisible']).toBe(true);
+				expect(GitGraphityView.currentPanel!['isPanelVisible']).toBe(true);
 			});
 
 			it('Should ignore events if they have no effect', () => {
 				// Setup
-				GitGraphView.createOrShow('/path/to/extension', dataSource, extensionState, avatarManager, repoManager, logger, null);
+				GitGraphityView.createOrShow('/path/to/extension', dataSource, extensionState, avatarManager, repoManager, logger, null);
 				const mockedWebviewPanel = vscode.getMockedWebviewPanel(0);
-				GitGraphView.currentPanel!['panel']['webview'].html = '';
+				GitGraphityView.currentPanel!['panel']['webview'].html = '';
 
 				// Run
 				mockedWebviewPanel.mocks.panel.setVisibility(true);
 
 				// Assert
 				expect(mockedWebviewPanel.panel.webview.html).toBe('');
-				expect(GitGraphView.currentPanel!['isPanelVisible']).toBe(true);
+				expect(GitGraphityView.currentPanel!['isPanelVisible']).toBe(true);
 			});
 		});
 
 		describe('RepoManager.onDidChangeRepos', () => {
 			it('Should send the updated repositories to the front-end when the view is already loaded', () => {
 				// Setup
-				GitGraphView.createOrShow('/path/to/extension', dataSource, extensionState, avatarManager, repoManager, logger, null);
+				GitGraphityView.createOrShow('/path/to/extension', dataSource, extensionState, avatarManager, repoManager, logger, null);
 
 				// Run
 				onDidChangeRepos.emit({
@@ -331,7 +331,7 @@ describe('GitGraphView', () => {
 
 			it('Should send the updated repositories to the front-end when the view is already loaded (with loadViewTo)', () => {
 				// Setup
-				GitGraphView.createOrShow('/path/to/extension', dataSource, extensionState, avatarManager, repoManager, logger, null);
+				GitGraphityView.createOrShow('/path/to/extension', dataSource, extensionState, avatarManager, repoManager, logger, null);
 
 				// Run
 				onDidChangeRepos.emit({
@@ -358,7 +358,7 @@ describe('GitGraphView', () => {
 
 			it('Shouldn\'t send the updated repositories to the front-end when the view is not visible', () => {
 				// Setup
-				GitGraphView.createOrShow('/path/to/extension', dataSource, extensionState, avatarManager, repoManager, logger, null);
+				GitGraphityView.createOrShow('/path/to/extension', dataSource, extensionState, avatarManager, repoManager, logger, null);
 				const mockedWebviewPanel = vscode.getMockedWebviewPanel(0);
 				mockedWebviewPanel.mocks.panel.setVisibility(false);
 
@@ -375,7 +375,7 @@ describe('GitGraphView', () => {
 
 			it('Should transition to no repositories correctly', () => {
 				// Setup
-				GitGraphView.createOrShow('/path/to/extension', dataSource, extensionState, avatarManager, repoManager, logger, null);
+				GitGraphityView.createOrShow('/path/to/extension', dataSource, extensionState, avatarManager, repoManager, logger, null);
 				spyOnGetRepos.mockReturnValueOnce({});
 
 				// Run
@@ -394,7 +394,7 @@ describe('GitGraphView', () => {
 			it('Should transition from no repositories correctly', () => {
 				// Setup
 				spyOnGetRepos.mockReturnValueOnce({});
-				GitGraphView.createOrShow('/path/to/extension', dataSource, extensionState, avatarManager, repoManager, logger, null);
+				GitGraphityView.createOrShow('/path/to/extension', dataSource, extensionState, avatarManager, repoManager, logger, null);
 
 				// Run
 				onDidChangeRepos.emit({
@@ -415,7 +415,7 @@ describe('GitGraphView', () => {
 		describe('AvatarManager.onAvatar', () => {
 			it('Should send the avatar', () => {
 				// Setup
-				GitGraphView.createOrShow('/path/to/extension', dataSource, extensionState, avatarManager, repoManager, logger, null);
+				GitGraphityView.createOrShow('/path/to/extension', dataSource, extensionState, avatarManager, repoManager, logger, null);
 
 				// Run
 				onAvatar.emit({
@@ -438,10 +438,10 @@ describe('GitGraphView', () => {
 		describe('RepoFileWatcher.repoChangeCallback', () => {
 			it('Should refresh the view when it\'s visible', () => {
 				// Setup
-				GitGraphView.createOrShow('/path/to/extension', dataSource, extensionState, avatarManager, repoManager, logger, null);
+				GitGraphityView.createOrShow('/path/to/extension', dataSource, extensionState, avatarManager, repoManager, logger, null);
 
 				// Run
-				GitGraphView.currentPanel!['repoFileWatcher']['repoChangeCallback']();
+				GitGraphityView.currentPanel!['repoFileWatcher']['repoChangeCallback']();
 
 				// Assert
 				const mockedWebviewPanel = vscode.getMockedWebviewPanel(0);
@@ -454,12 +454,12 @@ describe('GitGraphView', () => {
 
 			it('Shouldn\'t refresh the view when it isn\'t visible', () => {
 				// Setup
-				GitGraphView.createOrShow('/path/to/extension', dataSource, extensionState, avatarManager, repoManager, logger, null);
+				GitGraphityView.createOrShow('/path/to/extension', dataSource, extensionState, avatarManager, repoManager, logger, null);
 				const mockedWebviewPanel = vscode.getMockedWebviewPanel(0);
 				mockedWebviewPanel.mocks.panel.setVisibility(false);
 
 				// Run
-				GitGraphView.currentPanel!['repoFileWatcher']['repoChangeCallback']();
+				GitGraphityView.currentPanel!['repoFileWatcher']['repoChangeCallback']();
 
 				// Assert
 				expect(mockedWebviewPanel.mocks.messages).toHaveLength(0);
@@ -468,17 +468,17 @@ describe('GitGraphView', () => {
 	});
 
 	describe('Repository workflows', () => {
-		beforeEach(() => { GitGraphView.createOrShow('/path/to/extension', dataSource, extensionState, avatarManager, repoManager, logger, null); });
+		beforeEach(() => { GitGraphityView.createOrShow('/path/to/extension', dataSource, extensionState, avatarManager, repoManager, logger, null); });
 		it('rejects unregistered repository paths before executing Git', async () => {
 			const run = jest.spyOn(dataSource, 'executeGit'); run.mockClear();
-			await GitGraphView.currentPanel!['respondToMessage']({ command: 'repositoryTool', repo: '/outside/workspace', requestId: 7, tool: { kind: 'worktrees' } });
+			await GitGraphityView.currentPanel!['respondToMessage']({ command: 'repositoryTool', repo: '/outside/workspace', requestId: 7, tool: { kind: 'worktrees' } });
 			expect(run).not.toHaveBeenCalled();
 			expect(vscode.getMockedWebviewPanel(0).mocks.messages).toContainEqual({ command: 'repositoryTool', repo: '/outside/workspace', requestId: 7, result: null, error: 'Choose a registered repository' });
 		});
 		it('correlates worktree responses and leaves file events enabled for reads', async () => {
 			jest.spyOn(dataSource, 'executeGit').mockResolvedValueOnce('worktree /path/to/repo\0HEAD abcdef\0branch refs/heads/main\0\0');
-			const mute = jest.spyOn(GitGraphView.currentPanel!['repoFileWatcher'], 'mute');
-			await GitGraphView.currentPanel!['respondToMessage']({ command: 'repositoryTool', repo: '/path/to/repo', requestId: 8, tool: { kind: 'worktrees' } });
+			const mute = jest.spyOn(GitGraphityView.currentPanel!['repoFileWatcher'], 'mute');
+			await GitGraphityView.currentPanel!['respondToMessage']({ command: 'repositoryTool', repo: '/path/to/repo', requestId: 8, tool: { kind: 'worktrees' } });
 			expect(mute).not.toHaveBeenCalled();
 			expect(vscode.getMockedWebviewPanel(0).mocks.messages).toContainEqual({ command: 'repositoryTool', repo: '/path/to/repo', requestId: 8, result: { kind: 'worktrees', worktrees: [{ path: '/path/to/repo', head: 'abcdef', branch: 'main', main: true, locked: false, prunable: false }] }, error: null });
 		});
@@ -491,14 +491,14 @@ describe('GitGraphView', () => {
 		let spyOnRepoFileWatcherMute: jest.SpyInstance;
 		let spyOnRepoFileWatcherUnmute: jest.SpyInstance;
 		beforeEach(() => {
-			GitGraphView.createOrShow('/path/to/extension', dataSource, extensionState, avatarManager, repoManager, logger, null);
+			GitGraphityView.createOrShow('/path/to/extension', dataSource, extensionState, avatarManager, repoManager, logger, null);
 			const mockedWebviewPanel = vscode.getMockedWebviewPanel(0);
 
 			onDidReceiveMessage = mockedWebviewPanel.mocks.panel.webview.onDidReceiveMessage;
 			messages = mockedWebviewPanel.mocks.messages;
 
-			spyOnRepoFileWatcherMute = jest.spyOn(GitGraphView.currentPanel!['repoFileWatcher'], 'mute');
-			spyOnRepoFileWatcherUnmute = jest.spyOn(GitGraphView.currentPanel!['repoFileWatcher'], 'unmute');
+			spyOnRepoFileWatcherMute = jest.spyOn(GitGraphityView.currentPanel!['repoFileWatcher'], 'mute');
+			spyOnRepoFileWatcherUnmute = jest.spyOn(GitGraphityView.currentPanel!['repoFileWatcher'], 'unmute');
 		});
 
 		afterEach(() => {
@@ -509,7 +509,7 @@ describe('GitGraphView', () => {
 		it('Restores watcher state when a request rejects', async () => {
 			const failure = new Error('storage failed');
 			jest.spyOn(extensionState, 'setGlobalViewState').mockRejectedValueOnce(failure);
-			await expect(GitGraphView.currentPanel!['respondToMessage']({ command: 'setGlobalViewState', state: { alwaysAcceptCheckoutCommit: false, issueLinkingConfig: null, pushTagSkipRemoteCheck: false } })).rejects.toBe(failure);
+			await expect(GitGraphityView.currentPanel!['respondToMessage']({ command: 'setGlobalViewState', state: { alwaysAcceptCheckoutCommit: false, issueLinkingConfig: null, pushTagSkipRemoteCheck: false } })).rejects.toBe(failure);
 			expect(spyOnRepoFileWatcherUnmute).toHaveBeenCalledTimes(1);
 		});
 
@@ -2208,7 +2208,7 @@ describe('GitGraphView', () => {
 							error: getCommitsResolvedValue.error
 						}
 					]);
-					expect(GitGraphView.currentPanel!['loadCommitsRefreshId']).toBe(2);
+					expect(GitGraphityView.currentPanel!['loadCommitsRefreshId']).toBe(2);
 				});
 			});
 
@@ -2249,7 +2249,7 @@ describe('GitGraphView', () => {
 							error: getCommitsResolvedValue.error
 						}
 					]);
-					expect(GitGraphView.currentPanel!['loadCommitsRefreshId']).toBe(2);
+					expect(GitGraphityView.currentPanel!['loadCommitsRefreshId']).toBe(2);
 				});
 			});
 
@@ -2290,7 +2290,7 @@ describe('GitGraphView', () => {
 							error: getCommitsResolvedValue.error
 						}
 					]);
-					expect(GitGraphView.currentPanel!['loadCommitsRefreshId']).toBe(2);
+					expect(GitGraphityView.currentPanel!['loadCommitsRefreshId']).toBe(2);
 				});
 			});
 
@@ -2331,7 +2331,7 @@ describe('GitGraphView', () => {
 							error: getCommitsResolvedValue.error
 						}
 					]);
-					expect(GitGraphView.currentPanel!['loadCommitsRefreshId']).toBe(2);
+					expect(GitGraphityView.currentPanel!['loadCommitsRefreshId']).toBe(2);
 				});
 			});
 		});
@@ -2349,7 +2349,7 @@ describe('GitGraphView', () => {
 				const spyOnGetRepoInfo = jest.spyOn(dataSource, 'getRepoInfo');
 				const spyOnRepoRoot = jest.spyOn(dataSource, 'repoRoot');
 				const spyOnSetLastActiveRepo = jest.spyOn(extensionState, 'setLastActiveRepo');
-				const spyOnRepoFileWatcherStart = jest.spyOn(GitGraphView.currentPanel!['repoFileWatcher'], 'start');
+				const spyOnRepoFileWatcherStart = jest.spyOn(GitGraphityView.currentPanel!['repoFileWatcher'], 'start');
 				spyOnGetRepoInfo.mockResolvedValueOnce(getRepoInfoResolvedValue);
 				spyOnSetLastActiveRepo.mockImplementationOnce(() => { });
 				spyOnRepoFileWatcherStart.mockImplementationOnce(() => { });
@@ -2382,8 +2382,8 @@ describe('GitGraphView', () => {
 							error: getRepoInfoResolvedValue.error
 						}
 					]);
-					expect(GitGraphView.currentPanel!['currentRepo']).toBe('/path/to/repo');
-					expect(GitGraphView.currentPanel!['loadRepoInfoRefreshId']).toBe(0);
+					expect(GitGraphityView.currentPanel!['currentRepo']).toBe('/path/to/repo');
+					expect(GitGraphityView.currentPanel!['loadRepoInfoRefreshId']).toBe(0);
 				});
 			});
 
@@ -2399,9 +2399,9 @@ describe('GitGraphView', () => {
 				const spyOnGetRepoInfo = jest.spyOn(dataSource, 'getRepoInfo');
 				const spyOnRepoRoot = jest.spyOn(dataSource, 'repoRoot');
 				const spyOnSetLastActiveRepo = jest.spyOn(extensionState, 'setLastActiveRepo');
-				const spyOnRepoFileWatcherStart = jest.spyOn(GitGraphView.currentPanel!['repoFileWatcher'], 'start');
+				const spyOnRepoFileWatcherStart = jest.spyOn(GitGraphityView.currentPanel!['repoFileWatcher'], 'start');
 				spyOnGetRepoInfo.mockResolvedValueOnce(getRepoInfoResolvedValue);
-				GitGraphView.currentPanel!['currentRepo'] = '/path/to/repo';
+				GitGraphityView.currentPanel!['currentRepo'] = '/path/to/repo';
 
 				// Run
 				onDidReceiveMessage({
@@ -2431,8 +2431,8 @@ describe('GitGraphView', () => {
 							error: getRepoInfoResolvedValue.error
 						}
 					]);
-					expect(GitGraphView.currentPanel!['currentRepo']).toBe('/path/to/repo');
-					expect(GitGraphView.currentPanel!['loadRepoInfoRefreshId']).toBe(1);
+					expect(GitGraphityView.currentPanel!['currentRepo']).toBe('/path/to/repo');
+					expect(GitGraphityView.currentPanel!['loadRepoInfoRefreshId']).toBe(1);
 				});
 			});
 
@@ -2448,10 +2448,10 @@ describe('GitGraphView', () => {
 				const spyOnGetRepoInfo = jest.spyOn(dataSource, 'getRepoInfo');
 				const spyOnRepoRoot = jest.spyOn(dataSource, 'repoRoot');
 				const spyOnSetLastActiveRepo = jest.spyOn(extensionState, 'setLastActiveRepo');
-				const spyOnRepoFileWatcherStart = jest.spyOn(GitGraphView.currentPanel!['repoFileWatcher'], 'start');
+				const spyOnRepoFileWatcherStart = jest.spyOn(GitGraphityView.currentPanel!['repoFileWatcher'], 'start');
 				spyOnGetRepoInfo.mockResolvedValueOnce(getRepoInfoResolvedValue);
 				spyOnRepoRoot.mockResolvedValueOnce('/path/to/repo');
-				GitGraphView.currentPanel!['currentRepo'] = '/path/to/repo';
+				GitGraphityView.currentPanel!['currentRepo'] = '/path/to/repo';
 
 				// Run
 				onDidReceiveMessage({
@@ -2481,8 +2481,8 @@ describe('GitGraphView', () => {
 							error: getRepoInfoResolvedValue.error
 						}
 					]);
-					expect(GitGraphView.currentPanel!['currentRepo']).toBe('/path/to/repo');
-					expect(GitGraphView.currentPanel!['loadRepoInfoRefreshId']).toBe(2);
+					expect(GitGraphityView.currentPanel!['currentRepo']).toBe('/path/to/repo');
+					expect(GitGraphityView.currentPanel!['loadRepoInfoRefreshId']).toBe(2);
 				});
 			});
 
@@ -2498,10 +2498,10 @@ describe('GitGraphView', () => {
 				const spyOnGetRepoInfo = jest.spyOn(dataSource, 'getRepoInfo');
 				const spyOnRepoRoot = jest.spyOn(dataSource, 'repoRoot');
 				const spyOnSetLastActiveRepo = jest.spyOn(extensionState, 'setLastActiveRepo');
-				const spyOnRepoFileWatcherStart = jest.spyOn(GitGraphView.currentPanel!['repoFileWatcher'], 'start');
+				const spyOnRepoFileWatcherStart = jest.spyOn(GitGraphityView.currentPanel!['repoFileWatcher'], 'start');
 				spyOnGetRepoInfo.mockResolvedValueOnce(getRepoInfoResolvedValue);
 				spyOnRepoRoot.mockResolvedValueOnce(null);
-				GitGraphView.currentPanel!['currentRepo'] = '/path/to/repo';
+				GitGraphityView.currentPanel!['currentRepo'] = '/path/to/repo';
 
 				// Run
 				onDidReceiveMessage({
@@ -2531,8 +2531,8 @@ describe('GitGraphView', () => {
 							error: null
 						}
 					]);
-					expect(GitGraphView.currentPanel!['currentRepo']).toBe('/path/to/repo');
-					expect(GitGraphView.currentPanel!['loadRepoInfoRefreshId']).toBe(3);
+					expect(GitGraphityView.currentPanel!['currentRepo']).toBe('/path/to/repo');
+					expect(GitGraphityView.currentPanel!['loadRepoInfoRefreshId']).toBe(3);
 				});
 			});
 		});
@@ -3229,7 +3229,7 @@ describe('GitGraphView', () => {
 		describe('setGlobalViewState', () => {
 			it('Should set the Global View State', async () => {
 				// Setup
-				const globalViewState: GitGraphViewGlobalState = {
+				const globalViewState: GitGraphityViewGlobalState = {
 					alwaysAcceptCheckoutCommit: true,
 					issueLinkingConfig: null,
 					pushTagSkipRemoteCheck: false
@@ -3282,7 +3282,7 @@ describe('GitGraphView', () => {
 		describe('setWorkspaceViewState', () => {
 			it('Should set the Workspace View State', async () => {
 				// Setup
-				const workspaceViewState: GitGraphViewWorkspaceState = {
+				const workspaceViewState: GitGraphityViewWorkspaceState = {
 					findIsCaseSensitive: true,
 					findIsRegex: false,
 					findOpenCommitDetailsView: true
@@ -3547,7 +3547,7 @@ describe('GitGraphView', () => {
 
 	describe('sendMessage', () => {
 		beforeEach(() => {
-			GitGraphView.createOrShow('/path/to/extension', dataSource, extensionState, avatarManager, repoManager, logger, null);
+			GitGraphityView.createOrShow('/path/to/extension', dataSource, extensionState, avatarManager, repoManager, logger, null);
 			spyOnLog.mockReset();
 			spyOnLogError.mockReset();
 		});
@@ -3574,7 +3574,7 @@ describe('GitGraphView', () => {
 			});
 		});
 
-		it('Should log an error message when Webview.postMessage rejects, and the GitGraphView hasn\'t been disposed', async () => {
+		it('Should log an error message when Webview.postMessage rejects, and the GitGraphityView hasn\'t been disposed', async () => {
 			// Setup
 			const mockedWebviewPanel = vscode.getMockedWebviewPanel(0);
 			jest.spyOn(utils, 'viewScm').mockResolvedValueOnce(null);
@@ -3592,16 +3592,16 @@ describe('GitGraphView', () => {
 					error: null
 				});
 				expect(spyOnLog).not.toHaveBeenCalled();
-				expect(spyOnLogError).toHaveBeenCalledWith('Unable to send "viewScm" message to the Git Graph View.');
+				expect(spyOnLogError).toHaveBeenCalledWith('Unable to send "viewScm" message to the Git Graphity View.');
 			});
 		});
 
-		it('Should log an information message when Webview.postMessage rejects, and the GitGraphView has been disposed', async () => {
+		it('Should log an information message when Webview.postMessage rejects, and the GitGraphityView has been disposed', async () => {
 			// Setup
 			const mockedWebviewPanel = vscode.getMockedWebviewPanel(0);
 			jest.spyOn(utils, 'viewScm').mockResolvedValueOnce(null);
 			jest.spyOn(mockedWebviewPanel.panel.webview, 'postMessage').mockImplementationOnce(() => {
-				GitGraphView.currentPanel!.dispose();
+				GitGraphityView.currentPanel!.dispose();
 				return Promise.reject();
 			});
 
@@ -3616,7 +3616,7 @@ describe('GitGraphView', () => {
 					command: 'viewScm',
 					error: null
 				});
-				expect(spyOnLog).toHaveBeenCalledWith('The Git Graph View was disposed while sending "viewScm" message.');
+				expect(spyOnLog).toHaveBeenCalledWith('The Git Graphity View was disposed while sending "viewScm" message.');
 				expect(spyOnLogError).not.toHaveBeenCalled();
 			});
 		});
@@ -3628,7 +3628,7 @@ describe('GitGraphView', () => {
 			jest.spyOn(mockedWebviewPanel.panel.webview, 'postMessage').mockResolvedValueOnce(true);
 
 			// Run
-			GitGraphView.currentPanel!.dispose();
+			GitGraphityView.currentPanel!.dispose();
 			mockedWebviewPanel.mocks.panel.webview.onDidReceiveMessage({
 				command: 'viewScm'
 			});
@@ -3636,7 +3636,7 @@ describe('GitGraphView', () => {
 			// Assert
 			await waitForExpect(() => {
 				expect(mockedWebviewPanel.panel.webview.postMessage).not.toHaveBeenCalled();
-				expect(spyOnLog).toHaveBeenCalledWith('The Git Graph View has already been disposed, ignored sending "viewScm" message.');
+				expect(spyOnLog).toHaveBeenCalledWith('The Git Graphity View has already been disposed, ignored sending "viewScm" message.');
 				expect(spyOnLogError).not.toHaveBeenCalled();
 			});
 		});
@@ -3651,10 +3651,10 @@ describe('GitGraphView', () => {
 			const mockedWebviewPanel = vscode.getMockedWebviewPanel(0);
 			expect(mockedWebviewPanel.panel.webview.html).toContain('<meta http-equiv="Content-Security-Policy" content="default-src \'none\'; style-src vscode-webview-resource: \'unsafe-inline\'; script-src \'nonce-1a2b3c4d5e6f1a2b3c4d5e6f1a2b3c4d\'; img-src data:;">');
 			expect(mockedWebviewPanel.panel.webview.html).toContain('<link rel="stylesheet" type="text/css" href="vscode-webview-resource://file///path/to/extension/media/out.min.css">');
-			expect(mockedWebviewPanel.panel.webview.html).toContain('<title>Git Graph</title>');
-			expect(mockedWebviewPanel.panel.webview.html).toContain('--git-graph-color0:var(--vscode-scmGraph-historyItemRefColor, var(--vscode-charts-green));');
-			expect(mockedWebviewPanel.panel.webview.html).toContain('--git-graph-color5:var(--vscode-scmGraph-foreground5, var(--vscode-charts-purple));');
-			expect(mockedWebviewPanel.panel.webview.html).toContain('[data-color="5"]{--git-graph-color:var(--git-graph-color5);}');
+			expect(mockedWebviewPanel.panel.webview.html).toContain('<title>Git Graphity</title>');
+			expect(mockedWebviewPanel.panel.webview.html).toContain('--git-graphity-color0:var(--vscode-scmGraph-historyItemRefColor, var(--vscode-charts-green));');
+			expect(mockedWebviewPanel.panel.webview.html).toContain('--git-graphity-color5:var(--vscode-scmGraph-foreground5, var(--vscode-charts-purple));');
+			expect(mockedWebviewPanel.panel.webview.html).toContain('[data-color="5"]{--git-graphity-color:var(--git-graphity-color5);}');
 		});
 
 		it('Should get HTML when no Git executable is known', () => {
@@ -3662,11 +3662,11 @@ describe('GitGraphView', () => {
 			spyOnIsGitExecutableUnknown.mockReturnValueOnce(true);
 
 			// Run
-			GitGraphView.createOrShow('/path/to/extension', dataSource, extensionState, avatarManager, repoManager, logger, null);
+			GitGraphityView.createOrShow('/path/to/extension', dataSource, extensionState, avatarManager, repoManager, logger, null);
 
 			// Assert
 			const mockedWebviewPanel = vscode.getMockedWebviewPanel(0);
-			expect(mockedWebviewPanel.panel.webview.html).toContain('<h2>Unable to load Git Graph</h2>');
+			expect(mockedWebviewPanel.panel.webview.html).toContain('<h2>Unable to load Git Graphity</h2>');
 			expect(mockedWebviewPanel.panel.webview.html).toContain(utils.UNABLE_TO_FIND_GIT_MSG);
 		});
 
@@ -3675,12 +3675,12 @@ describe('GitGraphView', () => {
 			spyOnGetRepos.mockResolvedValueOnce({});
 
 			// Run
-			GitGraphView.createOrShow('/path/to/extension', dataSource, extensionState, avatarManager, repoManager, logger, null);
+			GitGraphityView.createOrShow('/path/to/extension', dataSource, extensionState, avatarManager, repoManager, logger, null);
 
 			// Assert
 			const mockedWebviewPanel = vscode.getMockedWebviewPanel(0);
-			expect(mockedWebviewPanel.panel.webview.html).toContain('<h2>Unable to load Git Graph</h2>');
-			expect(mockedWebviewPanel.panel.webview.html).toContain('No Git repositories were found in the current workspace when it was last scanned by Git Graph.');
+			expect(mockedWebviewPanel.panel.webview.html).toContain('<h2>Unable to load Git Graphity</h2>');
+			expect(mockedWebviewPanel.panel.webview.html).toContain('No Git repositories were found in the current workspace when it was last scanned by Git Graphity.');
 			expect(mockedWebviewPanel.panel.webview.html).toContain('<script nonce="1a2b3c4d5e6f1a2b3c4d5e6f1a2b3c4d">');
 		});
 
@@ -3690,7 +3690,7 @@ describe('GitGraphView', () => {
 			vscode.mockExtensionSettingReturnValue('repository.commits.fetchAvatars', false);
 
 			// Run
-			GitGraphView.createOrShow('/path/to/extension', dataSource, extensionState, avatarManager, repoManager, logger, null);
+			GitGraphityView.createOrShow('/path/to/extension', dataSource, extensionState, avatarManager, repoManager, logger, null);
 
 			// Assert
 			const mockedWebviewPanel = vscode.getMockedWebviewPanel(0);
@@ -3706,7 +3706,7 @@ describe('GitGraphView', () => {
 			vscode.mockExtensionSettingReturnValue('repository.commits.fetchAvatars', true);
 
 			// Run
-			GitGraphView.createOrShow('/path/to/extension', dataSource, extensionState, avatarManager, repoManager, logger, null);
+			GitGraphityView.createOrShow('/path/to/extension', dataSource, extensionState, avatarManager, repoManager, logger, null);
 
 			// Assert
 			const mockedWebviewPanel = vscode.getMockedWebviewPanel(0);

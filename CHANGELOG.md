@@ -1,5 +1,12 @@
 # Change Log
 
+## 1.32.4 - 2026-10-13
+
+- Rebrand the extension as Git Graphity with identifier `nulifyer.git-graphity`.
+- Rename commands, settings, context keys, diff URIs, and repository configuration files to the git-graphity namespace.
+- Match the multicolor icons to the installed Nulifyer theme palette, preserving their geometry and transparency.
+- Keep the original license and source attribution. Previous extension settings and saved state do not transfer automatically.
+
 ## 1.32.3 - 2026-10-12
 
 - Replace the extra workflow button row with compact workbench actions and an overflow menu.

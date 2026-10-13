@@ -10,7 +10,7 @@ const output = path.resolve(process.env['HISTORY_PROFILE_OUTPUT'] ?? '.agents/ev
 const increment = Number(process.env['HISTORY_LOAD_INCREMENT'] ?? 100);
 const findQuery = process.env['HISTORY_FIND_QUERY'] ?? '';
 const maximumRows = Number(process.env['HISTORY_MAX_ROWS'] ?? 30000);
-const directory = await mkdtemp(path.join(os.tmpdir(), 'git-graph-perf-'));
+const directory = await mkdtemp(path.join(os.tmpdir(), 'git-graphity-perf-'));
 const manifest = JSON.parse(await readFile(path.join(extensionRoot, 'package.json'), 'utf8'));
 const profile = path.join(directory, 'profile');
 
@@ -117,10 +117,10 @@ try {
 	await writeFile(path.join(profile, 'User', 'settings.json'), JSON.stringify({
 		'git.enabled': false,
 		'git.autofetch': false,
-		'git-graph.repository.commits.initialLoad': 300,
-		'git-graph.repository.commits.loadMore': increment,
-		'git-graph.repository.commits.loadMoreAutomatically': true,
-		'git-graph.repository.commits.fetchAvatars': false,
+		'git-graphity.repository.commits.initialLoad': 300,
+		'git-graphity.repository.commits.loadMore': increment,
+		'git-graphity.repository.commits.loadMoreAutomatically': true,
+		'git-graphity.repository.commits.fetchAvatars': false,
 		'workbench.colorTheme': process.env['VSCODE_TEST_THEME_NAME'] ?? 'Dark Modern'
 	}));
 	const theme = process.env['VSCODE_TEST_THEME_EXTENSION'];
@@ -149,10 +149,10 @@ exports.run = async () => {
   try {
     const extension=vscode.extensions.getExtension(${JSON.stringify(manifest.publisher + '.' + manifest.name)});
     assert(extension);await extension.activate();
-    const {GitGraphView}=require(${JSON.stringify(path.join(extensionRoot, 'out', 'gitGraphView.js'))});
-    await vscode.commands.executeCommand('git-graph.view');
-    await wait(()=>GitGraphView.currentPanel?.isGraphViewLoaded,'repository discovery');
-    view=GitGraphView.currentPanel;
+    const {GitGraphityView}=require(${JSON.stringify(path.join(extensionRoot, 'out', 'gitGraphityView.js'))});
+    await vscode.commands.executeCommand('git-graphity.view');
+    await wait(()=>GitGraphityView.currentPanel?.isGraphViewLoaded,'repository discovery');
+    view=GitGraphityView.currentPanel;
     const getCommits=view.dataSource.getCommits.bind(view.dataSource);
     view.dataSource.getCommits=async (...args)=>{
       const begin=performance.now();const result=await getCommits(...args);

@@ -9,10 +9,10 @@ interface FindWidgetState {
 }
 
 /**
- * Implements the Git Graph View's Find Widget.
+ * Implements the Git Graphity View's Find Widget.
  */
 class FindWidget {
-	private readonly view: GitGraphView;
+	private readonly view: GitGraphityView;
 	private text: string = '';
 	private matches: { hash: string, elem: HTMLElement | null }[] = [];
 	private position: number = -1;
@@ -36,10 +36,10 @@ class FindWidget {
 
 	/**
 	 * Construct a new FindWidget instance.
-	 * @param view The Git Graph View that the FindWidget is for.
+	 * @param view The Git Graphity View that the FindWidget is for.
 	 * @returns The FindWidget instance.
 	 */
-	constructor(view: GitGraphView) {
+	constructor(view: GitGraphityView) {
 		this.view = view;
 		this.widgetElem = document.createElement('div');
 		this.widgetElem.className = 'findWidget';
@@ -167,8 +167,8 @@ class FindWidget {
 	 * @param colour The base colour for the find matches.
 	 */
 	public setColour(colour: string) {
-		document.body.style.setProperty('--git-graph-findMatch', colour);
-		document.body.style.setProperty('--git-graph-findMatchCommit', modifyColourOpacity(colour, 0.5));
+		document.body.style.setProperty('--git-graphity-findMatch', colour);
+		document.body.style.setProperty('--git-graphity-findMatchCommit', modifyColourOpacity(colour, 0.5));
 	}
 
 

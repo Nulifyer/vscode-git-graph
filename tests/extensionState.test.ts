@@ -5,7 +5,7 @@ jest.mock('fs');
 
 import fs = require('fs');
 import { ExtensionState } from '../src/extensionState';
-import { BooleanOverride, FileViewType, GitGraphViewGlobalState, GitGraphViewWorkspaceState, GitRepoState, RepoCommitOrdering } from '../src/types';
+import { BooleanOverride, FileViewType, GitGraphityViewGlobalState, GitGraphityViewWorkspaceState, GitRepoState, RepoCommitOrdering } from '../src/types';
 import { GitExecutable } from '../src/utils';
 import { EventEmitter } from '../src/utils/event';
 
@@ -425,7 +425,7 @@ describe('ExtensionState', () => {
 	describe('getGlobalViewState', () => {
 		it('Should return the stored global view state', () => {
 			// Setup
-			const globalViewState: GitGraphViewGlobalState = {
+			const globalViewState: GitGraphityViewGlobalState = {
 				alwaysAcceptCheckoutCommit: true,
 				issueLinkingConfig: null,
 				pushTagSkipRemoteCheck: false
@@ -478,7 +478,7 @@ describe('ExtensionState', () => {
 	describe('setGlobalViewState', () => {
 		it('Should successfully store the global view state', async () => {
 			// Setup
-			const globalViewState: GitGraphViewGlobalState = {
+			const globalViewState: GitGraphityViewGlobalState = {
 				alwaysAcceptCheckoutCommit: true,
 				issueLinkingConfig: null,
 				pushTagSkipRemoteCheck: false
@@ -495,7 +495,7 @@ describe('ExtensionState', () => {
 
 		it('Should return an error message when vscode is unable to store the global view state', async () => {
 			// Setup
-			const globalViewState: GitGraphViewGlobalState = {
+			const globalViewState: GitGraphityViewGlobalState = {
 				alwaysAcceptCheckoutCommit: true,
 				issueLinkingConfig: null,
 				pushTagSkipRemoteCheck: false
@@ -507,14 +507,14 @@ describe('ExtensionState', () => {
 
 			// Assert
 			expect(extensionContext.globalState.update).toHaveBeenCalledWith('globalViewState', globalViewState);
-			expect(result).toBe('Visual Studio Code was unable to save the Git Graph Global State Memento.');
+			expect(result).toBe('Visual Studio Code was unable to save the Git Graphity Global State Memento.');
 		});
 	});
 
 	describe('getWorkspaceViewState', () => {
 		it('Should return the stored workspace view state', () => {
 			// Setup
-			const workspaceViewState: GitGraphViewWorkspaceState = {
+			const workspaceViewState: GitGraphityViewWorkspaceState = {
 				findIsCaseSensitive: true,
 				findIsRegex: false,
 				findOpenCommitDetailsView: true
@@ -568,7 +568,7 @@ describe('ExtensionState', () => {
 	describe('setWorkspaceViewState', () => {
 		it('Should successfully store the workspace view state', async () => {
 			// Setup
-			const workspaceViewState: GitGraphViewWorkspaceState = {
+			const workspaceViewState: GitGraphityViewWorkspaceState = {
 				findIsCaseSensitive: true,
 				findIsRegex: false,
 				findOpenCommitDetailsView: true
@@ -585,7 +585,7 @@ describe('ExtensionState', () => {
 
 		it('Should return an error message when vscode is unable to store the workspace view state', async () => {
 			// Setup
-			const workspaceViewState: GitGraphViewWorkspaceState = {
+			const workspaceViewState: GitGraphityViewWorkspaceState = {
 				findIsCaseSensitive: true,
 				findIsRegex: false,
 				findOpenCommitDetailsView: true
@@ -597,7 +597,7 @@ describe('ExtensionState', () => {
 
 			// Assert
 			expect(extensionContext.workspaceState.update).toHaveBeenCalledWith('workspaceViewState', workspaceViewState);
-			expect(result).toBe('Visual Studio Code was unable to save the Git Graph Workspace State Memento.');
+			expect(result).toBe('Visual Studio Code was unable to save the Git Graphity Workspace State Memento.');
 		});
 	});
 
@@ -652,7 +652,7 @@ describe('ExtensionState', () => {
 
 			// Assert
 			expect(extensionContext.workspaceState.update).toHaveBeenCalledWith('ignoredRepos', ignoreRepos);
-			expect(result).toBe('Visual Studio Code was unable to save the Git Graph Workspace State Memento.');
+			expect(result).toBe('Visual Studio Code was unable to save the Git Graphity Workspace State Memento.');
 		});
 	});
 
@@ -918,7 +918,7 @@ describe('ExtensionState', () => {
 			const result = await extensionState.clearAvatarCache();
 
 			// Assert
-			expect(result).toBe('Visual Studio Code was unable to save the Git Graph Global State Memento.');
+			expect(result).toBe('Visual Studio Code was unable to save the Git Graphity Global State Memento.');
 			expect(extensionContext.globalState.update).toHaveBeenCalledWith('avatarCache', {});
 			expect(spyOnReaddir).not.toHaveBeenCalled();
 		});
@@ -1008,7 +1008,7 @@ describe('ExtensionState', () => {
 			const result = await extensionState.startCodeReview('/path/to/repo', 'a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2', ['file2.txt', 'file3.txt'], 'file1.txt');
 
 			// Assert
-			expect(result.error).toBe('Visual Studio Code was unable to save the Git Graph Workspace State Memento.');
+			expect(result.error).toBe('Visual Studio Code was unable to save the Git Graphity Workspace State Memento.');
 		});
 	});
 
@@ -1118,7 +1118,7 @@ describe('ExtensionState', () => {
 			const result = await extensionState.endCodeReview('/path/to/repo', 'a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2');
 
 			// Assert
-			expect(result).toBe('Visual Studio Code was unable to save the Git Graph Workspace State Memento.');
+			expect(result).toBe('Visual Studio Code was unable to save the Git Graphity Workspace State Memento.');
 		});
 	});
 
@@ -1324,7 +1324,7 @@ describe('ExtensionState', () => {
 			const result = await extensionState.updateCodeReview(repo, id, ['file3.txt'], 'file2.txt');
 
 			// Asset
-			expect(result).toBe('Visual Studio Code was unable to save the Git Graph Workspace State Memento.');
+			expect(result).toBe('Visual Studio Code was unable to save the Git Graphity Workspace State Memento.');
 		});
 	});
 

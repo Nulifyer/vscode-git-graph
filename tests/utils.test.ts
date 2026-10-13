@@ -945,7 +945,7 @@ describe('openExtensionSettings', () => {
 		const result = await openExtensionSettings();
 
 		// Assert
-		expect(vscode.commands.executeCommand).toHaveBeenCalledWith('workbench.action.openSettings', '@ext:nulifyer.git-graph-modern');
+		expect(vscode.commands.executeCommand).toHaveBeenCalledWith('workbench.action.openSettings', '@ext:nulifyer.git-graphity');
 		expect(result).toBe(null);
 	});
 
@@ -957,7 +957,7 @@ describe('openExtensionSettings', () => {
 		const result = await openExtensionSettings();
 
 		// Assert
-		expect(result).toBe('Visual Studio Code was unable to open the Git Graph Extension Settings.');
+		expect(result).toBe('Visual Studio Code was unable to open the Git Graphity Extension Settings.');
 	});
 });
 
@@ -1160,8 +1160,8 @@ describe('viewDiff', () => {
 		// Assert
 		const [command, leftUri, rightUri, title, config] = vscode.commands.executeCommand.mock.calls[0];
 		expect(command).toBe('vscode.diff');
-		expect(leftUri.toString()).toBe(expectedValueGitGraphUri('subfolder/added.txt', '1a2b3c4d5e6f1a2b3c4d5e6f1a2b3c4d5e6f1a2b^', '/path/to/repo', false));
-		expect(rightUri.toString()).toBe(expectedValueGitGraphUri('subfolder/added.txt', '1a2b3c4d5e6f1a2b3c4d5e6f1a2b3c4d5e6f1a2b', '/path/to/repo', true));
+		expect(leftUri.toString()).toBe(expectedValueGitGraphityUri('subfolder/added.txt', '1a2b3c4d5e6f1a2b3c4d5e6f1a2b3c4d5e6f1a2b^', '/path/to/repo', false));
+		expect(rightUri.toString()).toBe(expectedValueGitGraphityUri('subfolder/added.txt', '1a2b3c4d5e6f1a2b3c4d5e6f1a2b3c4d5e6f1a2b', '/path/to/repo', true));
 		expect(title).toBe('added.txt (Added in 1a2b3c4d)');
 		expect(config).toStrictEqual({
 			preview: true,
@@ -1180,8 +1180,8 @@ describe('viewDiff', () => {
 		// Assert
 		const [command, leftUri, rightUri, title, config] = vscode.commands.executeCommand.mock.calls[0];
 		expect(command).toBe('vscode.diff');
-		expect(leftUri.toString()).toBe(expectedValueGitGraphUri('subfolder/modified.txt', '1a2b3c4d5e6f1a2b3c4d5e6f1a2b3c4d5e6f1a2b^', '/path/to/repo', true));
-		expect(rightUri.toString()).toBe(expectedValueGitGraphUri('subfolder/modified.txt', '1a2b3c4d5e6f1a2b3c4d5e6f1a2b3c4d5e6f1a2b', '/path/to/repo', true));
+		expect(leftUri.toString()).toBe(expectedValueGitGraphityUri('subfolder/modified.txt', '1a2b3c4d5e6f1a2b3c4d5e6f1a2b3c4d5e6f1a2b^', '/path/to/repo', true));
+		expect(rightUri.toString()).toBe(expectedValueGitGraphityUri('subfolder/modified.txt', '1a2b3c4d5e6f1a2b3c4d5e6f1a2b3c4d5e6f1a2b', '/path/to/repo', true));
 		expect(title).toBe('modified.txt (1a2b3c4d^ ↔ 1a2b3c4d)');
 		expect(config).toStrictEqual({
 			preview: true,
@@ -1200,8 +1200,8 @@ describe('viewDiff', () => {
 		// Assert
 		const [command, leftUri, rightUri, title, config] = vscode.commands.executeCommand.mock.calls[0];
 		expect(command).toBe('vscode.diff');
-		expect(leftUri.toString()).toBe(expectedValueGitGraphUri('subfolder/deleted.txt', '1a2b3c4d5e6f1a2b3c4d5e6f1a2b3c4d5e6f1a2b^', '/path/to/repo', true));
-		expect(rightUri.toString()).toBe(expectedValueGitGraphUri('subfolder/deleted.txt', '1a2b3c4d5e6f1a2b3c4d5e6f1a2b3c4d5e6f1a2b', '/path/to/repo', false));
+		expect(leftUri.toString()).toBe(expectedValueGitGraphityUri('subfolder/deleted.txt', '1a2b3c4d5e6f1a2b3c4d5e6f1a2b3c4d5e6f1a2b^', '/path/to/repo', true));
+		expect(rightUri.toString()).toBe(expectedValueGitGraphityUri('subfolder/deleted.txt', '1a2b3c4d5e6f1a2b3c4d5e6f1a2b3c4d5e6f1a2b', '/path/to/repo', false));
 		expect(title).toBe('deleted.txt (Deleted in 1a2b3c4d)');
 		expect(config).toStrictEqual({
 			preview: true,
@@ -1220,8 +1220,8 @@ describe('viewDiff', () => {
 		// Assert
 		const [command, leftUri, rightUri, title, config] = vscode.commands.executeCommand.mock.calls[0];
 		expect(command).toBe('vscode.diff');
-		expect(leftUri.toString()).toBe(expectedValueGitGraphUri('subfolder/added.txt', '1a2b3c4d5e6f1a2b3c4d5e6f1a2b3c4d5e6f1a2b', '/path/to/repo', false));
-		expect(rightUri.toString()).toBe(expectedValueGitGraphUri('subfolder/added.txt', 'a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2', '/path/to/repo', true));
+		expect(leftUri.toString()).toBe(expectedValueGitGraphityUri('subfolder/added.txt', '1a2b3c4d5e6f1a2b3c4d5e6f1a2b3c4d5e6f1a2b', '/path/to/repo', false));
+		expect(rightUri.toString()).toBe(expectedValueGitGraphityUri('subfolder/added.txt', 'a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2', '/path/to/repo', true));
 		expect(title).toBe('added.txt (Added between 1a2b3c4d & a1b2c3d4)');
 		expect(config).toStrictEqual({
 			preview: true,
@@ -1240,8 +1240,8 @@ describe('viewDiff', () => {
 		// Assert
 		const [command, leftUri, rightUri, title, config] = vscode.commands.executeCommand.mock.calls[0];
 		expect(command).toBe('vscode.diff');
-		expect(leftUri.toString()).toBe(expectedValueGitGraphUri('subfolder/modified.txt', '1a2b3c4d5e6f1a2b3c4d5e6f1a2b3c4d5e6f1a2b', '/path/to/repo', true));
-		expect(rightUri.toString()).toBe(expectedValueGitGraphUri('subfolder/modified.txt', 'a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2', '/path/to/repo', true));
+		expect(leftUri.toString()).toBe(expectedValueGitGraphityUri('subfolder/modified.txt', '1a2b3c4d5e6f1a2b3c4d5e6f1a2b3c4d5e6f1a2b', '/path/to/repo', true));
+		expect(rightUri.toString()).toBe(expectedValueGitGraphityUri('subfolder/modified.txt', 'a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2', '/path/to/repo', true));
 		expect(title).toBe('modified.txt (1a2b3c4d ↔ a1b2c3d4)');
 		expect(config).toStrictEqual({
 			preview: true,
@@ -1260,8 +1260,8 @@ describe('viewDiff', () => {
 		// Assert
 		const [command, leftUri, rightUri, title, config] = vscode.commands.executeCommand.mock.calls[0];
 		expect(command).toBe('vscode.diff');
-		expect(leftUri.toString()).toBe(expectedValueGitGraphUri('subfolder/deleted.txt', '1a2b3c4d5e6f1a2b3c4d5e6f1a2b3c4d5e6f1a2b', '/path/to/repo', true));
-		expect(rightUri.toString()).toBe(expectedValueGitGraphUri('subfolder/deleted.txt', 'a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2', '/path/to/repo', false));
+		expect(leftUri.toString()).toBe(expectedValueGitGraphityUri('subfolder/deleted.txt', '1a2b3c4d5e6f1a2b3c4d5e6f1a2b3c4d5e6f1a2b', '/path/to/repo', true));
+		expect(rightUri.toString()).toBe(expectedValueGitGraphityUri('subfolder/deleted.txt', 'a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2', '/path/to/repo', false));
 		expect(title).toBe('deleted.txt (Deleted between 1a2b3c4d & a1b2c3d4)');
 		expect(config).toStrictEqual({
 			preview: true,
@@ -1280,7 +1280,7 @@ describe('viewDiff', () => {
 		// Assert
 		const [command, leftUri, rightUri, title, config] = vscode.commands.executeCommand.mock.calls[0];
 		expect(command).toBe('vscode.diff');
-		expect(leftUri.toString()).toBe(expectedValueGitGraphUri('subfolder/added.txt', '1a2b3c4d5e6f1a2b3c4d5e6f1a2b3c4d5e6f1a2b', '/path/to/repo', false));
+		expect(leftUri.toString()).toBe(expectedValueGitGraphityUri('subfolder/added.txt', '1a2b3c4d5e6f1a2b3c4d5e6f1a2b3c4d5e6f1a2b', '/path/to/repo', false));
 		expect(getPathFromUri(rightUri)).toBe('/path/to/repo/subfolder/added.txt');
 		expect(title).toBe('added.txt (Added between 1a2b3c4d & Present)');
 		expect(config).toStrictEqual({
@@ -1300,7 +1300,7 @@ describe('viewDiff', () => {
 		// Assert
 		const [command, leftUri, rightUri, title, config] = vscode.commands.executeCommand.mock.calls[0];
 		expect(command).toBe('vscode.diff');
-		expect(leftUri.toString()).toBe(expectedValueGitGraphUri('subfolder/modified.txt', '1a2b3c4d5e6f1a2b3c4d5e6f1a2b3c4d5e6f1a2b', '/path/to/repo', true));
+		expect(leftUri.toString()).toBe(expectedValueGitGraphityUri('subfolder/modified.txt', '1a2b3c4d5e6f1a2b3c4d5e6f1a2b3c4d5e6f1a2b', '/path/to/repo', true));
 		expect(getPathFromUri(rightUri)).toBe('/path/to/repo/subfolder/modified.txt');
 		expect(title).toBe('modified.txt (1a2b3c4d ↔ Present)');
 		expect(config).toStrictEqual({
@@ -1320,8 +1320,8 @@ describe('viewDiff', () => {
 		// Assert
 		const [command, leftUri, rightUri, title, config] = vscode.commands.executeCommand.mock.calls[0];
 		expect(command).toBe('vscode.diff');
-		expect(leftUri.toString()).toBe(expectedValueGitGraphUri('subfolder/deleted.txt', '1a2b3c4d5e6f1a2b3c4d5e6f1a2b3c4d5e6f1a2b', '/path/to/repo', true));
-		expect(rightUri.toString()).toBe(expectedValueGitGraphUri('subfolder/deleted.txt', '*', '/path/to/repo', false));
+		expect(leftUri.toString()).toBe(expectedValueGitGraphityUri('subfolder/deleted.txt', '1a2b3c4d5e6f1a2b3c4d5e6f1a2b3c4d5e6f1a2b', '/path/to/repo', true));
+		expect(rightUri.toString()).toBe(expectedValueGitGraphityUri('subfolder/deleted.txt', '*', '/path/to/repo', false));
 		expect(title).toBe('deleted.txt (Deleted between 1a2b3c4d & Present)');
 		expect(config).toStrictEqual({
 			preview: true,
@@ -1340,7 +1340,7 @@ describe('viewDiff', () => {
 		// Assert
 		const [command, leftUri, rightUri, title, config] = vscode.commands.executeCommand.mock.calls[0];
 		expect(command).toBe('vscode.diff');
-		expect(leftUri.toString()).toBe(expectedValueGitGraphUri('subfolder/added.txt', 'HEAD', '/path/to/repo', false));
+		expect(leftUri.toString()).toBe(expectedValueGitGraphityUri('subfolder/added.txt', 'HEAD', '/path/to/repo', false));
 		expect(getPathFromUri(rightUri)).toBe('/path/to/repo/subfolder/added.txt');
 		expect(title).toBe('added.txt (Uncommitted)');
 		expect(config).toStrictEqual({
@@ -1360,7 +1360,7 @@ describe('viewDiff', () => {
 		// Assert
 		const [command, leftUri, rightUri, title, config] = vscode.commands.executeCommand.mock.calls[0];
 		expect(command).toBe('vscode.diff');
-		expect(leftUri.toString()).toBe(expectedValueGitGraphUri('subfolder/modified.txt', 'HEAD', '/path/to/repo', true));
+		expect(leftUri.toString()).toBe(expectedValueGitGraphityUri('subfolder/modified.txt', 'HEAD', '/path/to/repo', true));
 		expect(getPathFromUri(rightUri)).toBe('/path/to/repo/subfolder/modified.txt');
 		expect(title).toBe('modified.txt (Uncommitted)');
 		expect(config).toStrictEqual({
@@ -1380,8 +1380,8 @@ describe('viewDiff', () => {
 		// Assert
 		const [command, leftUri, rightUri, title, config] = vscode.commands.executeCommand.mock.calls[0];
 		expect(command).toBe('vscode.diff');
-		expect(leftUri.toString()).toBe(expectedValueGitGraphUri('subfolder/deleted.txt', 'HEAD', '/path/to/repo', true));
-		expect(rightUri.toString()).toBe(expectedValueGitGraphUri('subfolder/deleted.txt', '*', '/path/to/repo', false));
+		expect(leftUri.toString()).toBe(expectedValueGitGraphityUri('subfolder/deleted.txt', 'HEAD', '/path/to/repo', true));
+		expect(rightUri.toString()).toBe(expectedValueGitGraphityUri('subfolder/deleted.txt', '*', '/path/to/repo', false));
 		expect(title).toBe('deleted.txt (Uncommitted)');
 		expect(config).toStrictEqual({
 			preview: true,
@@ -1434,7 +1434,7 @@ describe('viewDiffWithWorkingFile', () => {
 		// Assert
 		const [command, leftUri, rightUri, title, config] = vscode.commands.executeCommand.mock.calls[0];
 		expect(command).toBe('vscode.diff');
-		expect(leftUri.toString()).toBe(expectedValueGitGraphUri('subfolder/modified.txt', '1a2b3c4d5e6f1a2b3c4d5e6f1a2b3c4d5e6f1a2b', '/path/to/repo', true));
+		expect(leftUri.toString()).toBe(expectedValueGitGraphityUri('subfolder/modified.txt', '1a2b3c4d5e6f1a2b3c4d5e6f1a2b3c4d5e6f1a2b', '/path/to/repo', true));
 		expect(getPathFromUri(rightUri)).toBe('/path/to/repo/subfolder/modified.txt');
 		expect(title).toBe('modified.txt (1a2b3c4d ↔ Present)');
 		expect(config).toStrictEqual({
@@ -1459,7 +1459,7 @@ describe('viewDiffWithWorkingFile', () => {
 		// Assert
 		const [command, leftUri, rightUri, title, config] = vscode.commands.executeCommand.mock.calls[0];
 		expect(command).toBe('vscode.diff');
-		expect(leftUri.toString()).toBe(expectedValueGitGraphUri('subfolder/renamed-old.txt', '1a2b3c4d5e6f1a2b3c4d5e6f1a2b3c4d5e6f1a2b', '/path/to/repo', true));
+		expect(leftUri.toString()).toBe(expectedValueGitGraphityUri('subfolder/renamed-old.txt', '1a2b3c4d5e6f1a2b3c4d5e6f1a2b3c4d5e6f1a2b', '/path/to/repo', true));
 		expect(getPathFromUri(rightUri)).toBe('/path/to/repo/subfolder/renamed-new.txt');
 		expect(title).toBe('renamed-new.txt (1a2b3c4d ↔ Present)');
 		expect(config).toStrictEqual({
@@ -1485,8 +1485,8 @@ describe('viewDiffWithWorkingFile', () => {
 		// Assert
 		const [command, leftUri, rightUri, title, config] = vscode.commands.executeCommand.mock.calls[0];
 		expect(command).toBe('vscode.diff');
-		expect(leftUri.toString()).toBe(expectedValueGitGraphUri('subfolder/deleted.txt', '1a2b3c4d5e6f1a2b3c4d5e6f1a2b3c4d5e6f1a2b', '/path/to/repo', true));
-		expect(rightUri.toString()).toBe(expectedValueGitGraphUri('subfolder/deleted.txt', '*', '/path/to/repo', false));
+		expect(leftUri.toString()).toBe(expectedValueGitGraphityUri('subfolder/deleted.txt', '1a2b3c4d5e6f1a2b3c4d5e6f1a2b3c4d5e6f1a2b', '/path/to/repo', true));
+		expect(rightUri.toString()).toBe(expectedValueGitGraphityUri('subfolder/deleted.txt', '*', '/path/to/repo', false));
 		expect(title).toBe('deleted.txt (Deleted between 1a2b3c4d & Present)');
 		expect(config).toStrictEqual({
 			preview: true,
@@ -1511,8 +1511,8 @@ describe('viewDiffWithWorkingFile', () => {
 		// Assert
 		const [command, leftUri, rightUri, title, config] = vscode.commands.executeCommand.mock.calls[0];
 		expect(command).toBe('vscode.diff');
-		expect(leftUri.toString()).toBe(expectedValueGitGraphUri('subfolder/renamed-old.txt', '1a2b3c4d5e6f1a2b3c4d5e6f1a2b3c4d5e6f1a2b', '/path/to/repo', true));
-		expect(rightUri.toString()).toBe(expectedValueGitGraphUri('subfolder/renamed-old.txt', '*', '/path/to/repo', false));
+		expect(leftUri.toString()).toBe(expectedValueGitGraphityUri('subfolder/renamed-old.txt', '1a2b3c4d5e6f1a2b3c4d5e6f1a2b3c4d5e6f1a2b', '/path/to/repo', true));
+		expect(rightUri.toString()).toBe(expectedValueGitGraphityUri('subfolder/renamed-old.txt', '*', '/path/to/repo', false));
 		expect(title).toBe('renamed-old.txt (Deleted between 1a2b3c4d & Present)');
 		expect(config).toStrictEqual({
 			preview: true,
@@ -1549,7 +1549,7 @@ describe('viewFileAtRevision', () => {
 		// Assert
 		const [command, uri, config] = vscode.commands.executeCommand.mock.calls[0];
 		expect(command).toBe('vscode.open');
-		expect(uri.toString()).toBe(expectedValueGitGraphUri('subfolder/file.txt', '1a2b3c4d5e6f1a2b3c4d5e6f1a2b3c4d5e6f1a2b', '/path/to/repo', true).replace('file.txt', '1a2b3c4d: file.txt'));
+		expect(uri.toString()).toBe(expectedValueGitGraphityUri('subfolder/file.txt', '1a2b3c4d5e6f1a2b3c4d5e6f1a2b3c4d5e6f1a2b', '/path/to/repo', true).replace('file.txt', '1a2b3c4d: file.txt'));
 		expect(config).toStrictEqual({
 			preview: true,
 			viewColumn: vscode.ViewColumn.Active
@@ -1620,7 +1620,7 @@ describe('openGitTerminal', () => {
 			env: {
 				PATH: '/path/to/executable:/path/to/git'
 			},
-			name: 'Git Graph: Name'
+			name: 'Git Graphity: Name'
 		});
 		expect(terminal.sendText).toHaveBeenCalledTimes(0);
 		expect(terminal.show).toHaveBeenCalled();
@@ -1636,7 +1636,7 @@ describe('openGitTerminal', () => {
 			env: {
 				PATH: '/path/to/executable:/path/to/git'
 			},
-			name: 'Git Graph: Name'
+			name: 'Git Graphity: Name'
 		});
 		expect(terminal.sendText).toHaveBeenCalledWith('git rebase');
 		expect(terminal.show).toHaveBeenCalled();
@@ -1655,7 +1655,7 @@ describe('openGitTerminal', () => {
 			env: {
 				PATH: '/path/to/git'
 			},
-			name: 'Git Graph: Name'
+			name: 'Git Graphity: Name'
 		});
 		expect(terminal.sendText).toHaveBeenCalledWith('git rebase');
 		expect(terminal.show).toHaveBeenCalled();
@@ -1674,7 +1674,7 @@ describe('openGitTerminal', () => {
 			env: {
 				PATH: '/path/to/executable:/path/to/git'
 			},
-			name: 'Git Graph: Name',
+			name: 'Git Graphity: Name',
 			shellPath: '/path/to/shell'
 		});
 		expect(terminal.sendText).toHaveBeenCalledWith('git rebase');
@@ -1694,7 +1694,7 @@ describe('openGitTerminal', () => {
 			env: {
 				PATH: '/path/to/executable;/path/to/git'
 			},
-			name: 'Git Graph: Name'
+			name: 'Git Graphity: Name'
 		});
 		expect(terminal.sendText).toHaveBeenCalledWith('git rebase');
 		expect(terminal.show).toHaveBeenCalled();
@@ -1713,7 +1713,7 @@ describe('openGitTerminal', () => {
 			env: {
 				PATH: '/path/to/executable;/path/to/git'
 			},
-			name: 'Git Graph: Name'
+			name: 'Git Graphity: Name'
 		});
 		expect(terminal.sendText).toHaveBeenCalledWith('git rebase');
 		expect(terminal.show).toHaveBeenCalled();
@@ -1732,7 +1732,7 @@ describe('openGitTerminal', () => {
 			env: {
 				PATH: '/path/to/executable;/path/to/git'
 			},
-			name: 'Git Graph: Name'
+			name: 'Git Graphity: Name'
 		});
 		expect(terminal.sendText).toHaveBeenCalledWith('git rebase');
 		expect(terminal.show).toHaveBeenCalled();
@@ -2496,8 +2496,8 @@ describe('constructIncompatibleGitVersionMessage', () => {
 	});
 });
 
-function expectedValueGitGraphUri(filePath: string, commit: string, repo: string, exists: boolean) {
+function expectedValueGitGraphityUri(filePath: string, commit: string, repo: string, exists: boolean) {
 	const extIndex = filePath.indexOf('.', filePath.lastIndexOf('/') + 1);
 	const extension = exists && extIndex > -1 ? filePath.substring(extIndex) : '';
-	return 'git-graph://file' + extension + '?' + Buffer.from(JSON.stringify({ filePath: filePath, commit: commit, repo: repo, exists: exists })).toString('base64');
+	return 'git-graphity://file' + extension + '?' + Buffer.from(JSON.stringify({ filePath: filePath, commit: commit, repo: repo, exists: exists })).toString('base64');
 }

@@ -1,4 +1,4 @@
-# Contributing to Git Graph Modern
+# Contributing to Git Graphity
 
 This fork is maintained by [nulifyer](https://github.com/Nulifyer). The original project is [Michael Hutchison's Git Graph](https://github.com/mhutchie/vscode-git-graph). Preserve the original license and source attribution.
 
@@ -25,7 +25,7 @@ Run `bun run test-extension-host` to test activation, rendered commit rows and g
 
 ## Local installation
 
-Disable `mhutchie.git-graph` and the earlier local `nulifyer.git-graph` build before enabling `nulifyer.git-graph-modern`. They share command IDs and settings.
+Git Graphity uses separate command IDs and settings. Previous extension settings and saved state do not transfer automatically.
 
 ```bash
 bun run package-and-install
@@ -56,9 +56,9 @@ The GitHub release upload uses the automatic `GITHUB_TOKEN`; it does not need a 
 After committing and pushing a version change, tag that commit and push the tag. Publish the GitHub release to start the workflow. For the current version:
 
 ```bash
-git tag v1.31.5
-git push origin v1.31.5
-gh release create v1.31.5 --verify-tag --generate-notes
+git tag v1.32.4
+git push origin v1.32.4
+gh release create v1.32.4 --verify-tag --generate-notes
 ```
 
 A GitHub prerelease uses the Marketplace prerelease channel. Keep the numeric version and select the GitHub prerelease option. The workflow uses `--pre-release` when packaging and publishing.

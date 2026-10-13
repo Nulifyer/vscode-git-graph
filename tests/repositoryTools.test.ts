@@ -21,7 +21,7 @@ const prepare = async (base: string): Promise<RebasePlan> => {
 };
 
 beforeEach(async () => {
-	directory = await mkdtemp(path.join(os.tmpdir(), 'git-graph-workflows-'));
+	directory = await mkdtemp(path.join(os.tmpdir(), 'git-graphity-workflows-'));
 	repo = path.join(directory, 'repo'); await mkdir(repo);
 	await git(['init', '-b', 'main']);
 	await git(['config', 'user.name', 'Fixture']); await git(['config', 'user.email', 'fixture@example.test']);

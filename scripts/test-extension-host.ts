@@ -6,7 +6,7 @@ import manifest from '../package.json';
 
 const root = path.resolve(import.meta.dir, '..');
 const extensionRoot = path.resolve(process.env['EXTENSION_UNDER_TEST'] ?? root);
-const directory = await mkdtemp(path.join(os.tmpdir(), 'git-graph-host-'));
+const directory = await mkdtemp(path.join(os.tmpdir(), 'git-graphity-host-'));
 const repository = path.join(directory, 'repository');
 const profile = path.join(directory, 'profile');
 const previewDirectory = process.env['VSCODE_TEST_UI_PREVIEW_DIR'] ? path.resolve(process.env['VSCODE_TEST_UI_PREVIEW_DIR']) : null;
@@ -175,17 +175,17 @@ exports.run = async () => {
   await extension.activate();
   assert(extension.isActive, 'Extension activated');
   if (${JSON.stringify(customPalette) ?? 'undefined'}) {
-    await vscode.workspace.getConfiguration('git-graph').update('graph.colours', ${JSON.stringify(customPalette) ?? 'undefined'}, vscode.ConfigurationTarget.Global);
+    await vscode.workspace.getConfiguration('git-graphity').update('graph.colours', ${JSON.stringify(customPalette) ?? 'undefined'}, vscode.ConfigurationTarget.Global);
   }
-  const {GitGraphView} = require(${JSON.stringify(path.join(extensionRoot, 'out', 'gitGraphView.js'))});
-  await vscode.commands.executeCommand('git-graph.view');
+  const {GitGraphityView} = require(${JSON.stringify(path.join(extensionRoot, 'out', 'gitGraphityView.js'))});
+  await vscode.commands.executeCommand('git-graphity.view');
   const deadline = Date.now() + 15000;
   while (Date.now() < deadline) {
-    const view = GitGraphView.currentPanel;
+    const view = GitGraphityView.currentPanel;
     if (view && view.loadCommitsRefreshId > 0 && view.repoFileWatcher.repo === ${JSON.stringify(repository)}) break;
     await new Promise(resolve => setTimeout(resolve, 100));
   }
-  const view = GitGraphView.currentPanel;
+  const view = GitGraphityView.currentPanel;
   assert(view, 'Graph command created a webview');
   assert(view.isGraphViewLoaded, 'Real repository appeared in generated HTML');
   assert(view.loadCommitsRefreshId > 0, 'Compiled webview requested history through the host bridge');

@@ -21,7 +21,7 @@ Steps to reproduce the behaviour:
 A clear and concise description of what you expected to happen.
 
 **Environment**
- - Git Graph Extension Version: [e.g. 1.13.0]
+ - Git Graphity Extension Version: [e.g. 1.13.0]
  - Visual Studio Code Version: [e.g. 1.37.1]
  - Operating System: [e.g. Windows 10]
 

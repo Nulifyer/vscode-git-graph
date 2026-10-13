@@ -6,7 +6,7 @@ import manifest from '../package.json';
 
 const root = path.resolve(import.meta.dir, '..');
 const extensionRoot = path.resolve(process.env['EXTENSION_UNDER_TEST'] ?? root);
-const directory = await mkdtemp(path.join(os.tmpdir(), 'git-graph-workflow-host-'));
+const directory = await mkdtemp(path.join(os.tmpdir(), 'git-graphity-workflow-host-'));
 const repo = path.join(directory, 'repo');
 const worktree = path.join(directory, 'spare');
 async function git(args: string[], stdin?: string) {
@@ -153,7 +153,7 @@ try {
 	await git(['merge', '--no-ff', 'feature', '-m', 'Merge fixture']);
 	for (const name of ['one', 'two']) { await writeFile(path.join(repo, name + '.txt'), name + '\n'); await git(['add', '.']); await git(['commit', '-m', name + ' fixture']); }
 	const profile = path.join(directory, 'profile'); await mkdir(path.join(profile, 'User'), { recursive: true });
-	await writeFile(path.join(profile, 'User', 'settings.json'), JSON.stringify({ 'git.enabled': false, 'git-graph.repository.commits.loadMore': 1000, 'git-graph.repository.commits.loadMoreAutomatically': false, 'git-graph.commitDetailsView.autoCenter': false }));
+	await writeFile(path.join(profile, 'User', 'settings.json'), JSON.stringify({ 'git.enabled': false, 'git-graphity.repository.commits.loadMore': 1000, 'git-graphity.repository.commits.loadMoreAutomatically': false, 'git-graphity.commitDetailsView.autoCenter': false }));
 	const test = path.join(directory, 'test.cjs');
 	await writeFile(test, `
 const assert=require('node:assert/strict'), vscode=require('vscode'), fs=require('node:fs'), {execFileSync}=require('node:child_process');
@@ -161,10 +161,10 @@ exports.run=async()=> {
   console.log('WORKFLOW_PROGRESS host started');
   await vscode.extensions.getExtension(${JSON.stringify(manifest.publisher + '.' + manifest.name)}).activate();
   console.log('WORKFLOW_PROGRESS activated');
-  await vscode.commands.executeCommand('git-graph.view');
+  await vscode.commands.executeCommand('git-graphity.view');
   console.log('WORKFLOW_PROGRESS opened graph');
-  const {GitGraphView}=require(${JSON.stringify(path.join(extensionRoot, 'out', 'gitGraphView.js'))});
-  const view=GitGraphView.currentPanel;
+  const {GitGraphityView}=require(${JSON.stringify(path.join(extensionRoot, 'out', 'gitGraphityView.js'))});
+  const view=GitGraphityView.currentPanel;
   const deadline=Date.now()+20000;
   while(!view.isGraphViewLoaded || !view.loadCommitsRefreshId) { if(Date.now()>deadline) throw new Error('Repository did not load'); await new Promise(resolve=>setTimeout(resolve,100)); }
   const html=view.panel.webview.html, nonce=html.match(/<script nonce="([^"]+)"/)[1];

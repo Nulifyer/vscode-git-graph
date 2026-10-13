@@ -82,7 +82,7 @@ type DialogTarget = {
 } | RepoTarget;
 
 /**
- * Implements the Git Graph View's dialogs.
+ * Implements the Git Graphity View's dialogs.
  */
 class Dialog {
 	private elem: HTMLElement | null = null;
@@ -323,7 +323,7 @@ class Dialog {
 	}
 
 	/**
-	 * Show a dialog in the Git Graph View.
+	 * Show a dialog in the Git Graphity View.
 	 * @param type The type of dialog being shown.
 	 * @param html The HTML content for the dialog.
 	 * @param actionName The name of the primary (default) action.
@@ -345,7 +345,7 @@ class Dialog {
 		dialogContent.className = 'dialogContent';
 		dialog.setAttribute('role', 'dialog');
 		dialog.setAttribute('aria-modal', 'true');
-		dialog.setAttribute('aria-label', actionName ?? (type === DialogType.ActionRunning ? 'Git operation' : 'Git Graph message'));
+		dialog.setAttribute('aria-label', actionName ?? (type === DialogType.ActionRunning ? 'Git operation' : 'Git Graphity message'));
 		dialogContent.innerHTML = html;
 		const footer = document.createElement('div');
 		footer.className = 'dialogFooter';
@@ -376,7 +376,7 @@ class Dialog {
 	}
 
 	/**
-	 * Close the dialog (if one is currently open in the Git Graph View).
+	 * Close the dialog (if one is currently open in the Git Graphity View).
 	 */
 	public close() {
 		eventOverlay.remove();
@@ -395,7 +395,7 @@ class Dialog {
 	}
 
 	/**
-	 * Close the action running dialog (if one is currently open in the Git Graph View).
+	 * Close the action running dialog (if one is currently open in the Git Graphity View).
 	 */
 	public closeActionRunning() {
 		if (this.type === DialogType.ActionRunning) this.close();
@@ -409,9 +409,9 @@ class Dialog {
 	}
 
 	/**
-	 * Refresh the dialog (if one is currently open in the Git Graph View). If the dialog has a dynamic source, re-link
-	 * it to the newly rendered HTML Element, or close it if the target is no longer visible in the Git Graph View.
-	 * @param commits The new array of commits that is rendered in the Git Graph View.
+	 * Refresh the dialog (if one is currently open in the Git Graphity View). If the dialog has a dynamic source, re-link
+	 * it to the newly rendered HTML Element, or close it if the target is no longer visible in the Git Graphity View.
+	 * @param commits The new array of commits that is rendered in the Git Graphity View.
 	 */
 	public refresh(commits: ReadonlyArray<GG.GitCommit>) {
 		if (!this.isOpen() || this.target === null || this.target.type === TargetType.Repo) {
@@ -450,7 +450,7 @@ class Dialog {
 	}
 
 	/**
-	 * Is a dialog currently open in the Git Graph View.
+	 * Is a dialog currently open in the Git Graphity View.
 	 * @returns TRUE => A dialog is open, FALSE => No dialog is open
 	 */
 	public isOpen() {
@@ -458,7 +458,7 @@ class Dialog {
 	}
 
 	/**
-	 * Is the target of the dialog dynamic (i.e. is it tied to a Git object & HTML Element in the Git Graph View).
+	 * Is the target of the dialog dynamic (i.e. is it tied to a Git object & HTML Element in the Git Graphity View).
 	 * @returns TRUE => The dialog is dynamic, FALSE => The dialog is not dynamic
 	 */
 	public isTargetDynamicSource() {

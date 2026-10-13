@@ -17,9 +17,9 @@ import { Disposable, toDisposable } from '../utils/disposable';
 export interface AskpassEnvironment {
 	GIT_ASKPASS: string;
 	ELECTRON_RUN_AS_NODE?: string;
-	VSCODE_GIT_GRAPH_ASKPASS_NODE?: string;
-	VSCODE_GIT_GRAPH_ASKPASS_MAIN?: string;
-	VSCODE_GIT_GRAPH_ASKPASS_HANDLE?: string;
+	VSCODE_GIT_GRAPHITY_ASKPASS_NODE?: string;
+	VSCODE_GIT_GRAPHITY_ASKPASS_MAIN?: string;
+	VSCODE_GIT_GRAPHITY_ASKPASS_HANDLE?: string;
 }
 
 export interface AskpassRequest {
@@ -64,7 +64,7 @@ export class AskpassManager extends Disposable {
 		req.on('data', (d) => reqData += d);
 		req.on('end', () => {
 			let data = JSON.parse(reqData) as AskpassRequest;
-			vscode.window.showInputBox({ placeHolder: data.request, prompt: 'Git Graph: ' + data.host, password: /password/i.test(data.request), ignoreFocusOut: true }).then(result => {
+			vscode.window.showInputBox({ placeHolder: data.request, prompt: 'Git Graphity: ' + data.host, password: /password/i.test(data.request), ignoreFocusOut: true }).then(result => {
 				res.writeHead(200);
 				res.end(JSON.stringify(result || ''));
 			}, () => {
@@ -79,9 +79,9 @@ export class AskpassManager extends Disposable {
 			? {
 				ELECTRON_RUN_AS_NODE: '1',
 				GIT_ASKPASS: path.join(__dirname, 'askpass.sh'),
-				VSCODE_GIT_GRAPH_ASKPASS_NODE: process.execPath,
-				VSCODE_GIT_GRAPH_ASKPASS_MAIN: path.join(__dirname, 'askpassMain.js'),
-				VSCODE_GIT_GRAPH_ASKPASS_HANDLE: this.ipcHandlePath
+				VSCODE_GIT_GRAPHITY_ASKPASS_NODE: process.execPath,
+				VSCODE_GIT_GRAPHITY_ASKPASS_MAIN: path.join(__dirname, 'askpassMain.js'),
+				VSCODE_GIT_GRAPHITY_ASKPASS_HANDLE: this.ipcHandlePath
 			}
 			: {
 				GIT_ASKPASS: path.join(__dirname, 'askpass-empty.sh')
@@ -91,10 +91,10 @@ export class AskpassManager extends Disposable {
 
 function getIPCHandlePath(nonce: string): string {
 	if (process.platform === 'win32') {
-		return '\\\\.\\pipe\\git-graph-askpass-' + nonce + '-sock';
+		return '\\\\.\\pipe\\git-graphity-askpass-' + nonce + '-sock';
 	} else if (process.env['XDG_RUNTIME_DIR']) {
-		return path.join(process.env['XDG_RUNTIME_DIR'] as string, 'git-graph-askpass-' + nonce + '.sock');
+		return path.join(process.env['XDG_RUNTIME_DIR'] as string, 'git-graphity-askpass-' + nonce + '.sock');
 	} else {
-		return path.join(os.tmpdir(), 'git-graph-askpass-' + nonce + '.sock');
+		return path.join(os.tmpdir(), 'git-graphity-askpass-' + nonce + '.sock');
 	}
 }

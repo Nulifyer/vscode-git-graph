@@ -5,7 +5,7 @@
 	color:var(--vscode-menu-foreground);
 	left:50%;
 	transform:translateX(-50%);
-	border:1px solid var(--git-graph-border);
+	border:1px solid var(--git-graphity-border);
 	border-radius:5px;
 	text-align:center;
 	font-size:13px;
@@ -14,7 +14,7 @@
 	box-shadow:0 0 30px 5px var(--vscode-widget-shadow);
 }
 :is(body.vscode-high-contrast, body.vscode-high-contrast-light) .dialog{
-	border-color:var(--vscode-menu-border, var(--git-graph-border));
+	border-color:var(--vscode-menu-border, var(--git-graphity-border));
 }
 
 .dialogContent{
@@ -89,7 +89,7 @@
 	box-sizing:border-box;
 	outline-style:none;
 	background-color:var(--vscode-input-background);
-	border:1px solid var(--vscode-input-border, var(--git-graph-border));
+	border:1px solid var(--vscode-input-border, var(--git-graphity-border));
 	border-radius:4px;
 	color:var(--vscode-input-foreground);
 	font-family:var(--vscode-font-family);
@@ -128,8 +128,8 @@
 .dialog #dialogAction{
 	color:var(--vscode-button-foreground);
 	background-color:var(--vscode-button-background);
-	border-color:var(--git-graph-border);
-	box-shadow:0 0 1px 1px var(--git-graph-border);
+	border-color:var(--git-graphity-border);
+	box-shadow:0 0 1px 1px var(--git-graphity-border);
 }
 
 .dialog #dialogAction:hover{
@@ -210,7 +210,7 @@
 	padding:4px 22px 4px 6px;
 	box-sizing:border-box;
 	background-color:var(--vscode-input-background);
-	border:1px solid var(--vscode-input-border, var(--git-graph-border));
+	border:1px solid var(--vscode-input-border, var(--git-graphity-border));
 	border-radius:4px;
 	outline-style:none;
 	color:var(--vscode-menu-foreground);
@@ -312,7 +312,7 @@
 .dialog {
  display: flex; flex-direction: column; width: 440px; max-width: calc(100vw - 32px);
  max-height: calc(100vh - 64px); top: 50%; transform: translate(-50%, -50%);
- box-sizing: border-box; border-radius: 4px; border-color: var(--vscode-widget-border, var(--vscode-contrastBorder, var(--git-graph-border)));
+ box-sizing: border-box; border-radius: 4px; border-color: var(--vscode-widget-border, var(--vscode-contrastBorder, var(--git-graphity-border)));
  background: var(--vscode-editorWidget-background, var(--vscode-editor-background)); color: var(--vscode-foreground);
  text-align: left; font: 400 var(--vscode-font-size, 13px)/1.5 var(--vscode-font-family, system-ui);
  box-shadow: 0 8px 32px var(--vscode-widget-shadow);
@@ -328,7 +328,7 @@
 .customSelectContainer { height: 28px; }
 .customSelectOption { background: transparent; }
 .customSelectOptions > .customSelectOption.selected { color: var(--vscode-list-inactiveSelectionForeground, var(--vscode-menu-foreground)); background: var(--vscode-list-inactiveSelectionBackground); }
-.dialogFooter { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; padding: 12px 16px; border-top: 1px solid var(--git-graph-border); }
+.dialogFooter { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; padding: 12px 16px; border-top: 1px solid var(--git-graphity-border); }
 .dialog .roundedBtn { margin: 0; padding: 3px 12px; min-height: 26px; border: 1px solid var(--vscode-button-border, transparent); border-radius: 2px; font: inherit; line-height: 18px; cursor: pointer; }
 .dialog #dialogAction { box-shadow: none; border-color: var(--vscode-button-border, transparent); }
 .dialog #dialogSecondaryAction { color: var(--vscode-button-secondaryForeground); background: var(--vscode-button-secondaryBackground); }

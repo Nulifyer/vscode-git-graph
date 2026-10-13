@@ -5,7 +5,7 @@ interface DropdownOption {
 }
 
 /**
- * Implements the dropdown inputs used in the Git Graph View's top control bar.
+ * Implements the dropdown inputs used in the Git Graphity View's top control bar.
  */
 class Dropdown {
 	private readonly showInfo: boolean;

@@ -18,7 +18,7 @@ export class RepoFileWatcher {
 
 	/**
 	 * Creates a RepoFileWatcher.
-	 * @param logger The Git Graph Logger instance.
+	 * @param logger The Git Graphity Logger instance.
 	 * @param repoChangeCallback A callback to be invoked when a file event occurs in the repository.
 	 */
 	constructor(logger: Logger, repoChangeCallback: () => void) {
@@ -63,14 +63,14 @@ export class RepoFileWatcher {
 	}
 
 	/**
-	 * Mute file events - Used to prevent many file events from being triggered when a Git action is executed by the Git Graph View.
+	 * Mute file events - Used to prevent many file events from being triggered when a Git action is executed by the Git Graphity View.
 	 */
 	public mute() {
 		this.muteCount++;
 	}
 
 	/**
-	 * Unmute file events - Used to resume normal watching after a Git action executed by the Git Graph View has completed.
+	 * Unmute file events - Used to resume normal watching after a Git action executed by the Git Graphity View has completed.
 	 */
 	public unmute() {
 		this.muteCount = Math.max(0, this.muteCount - 1);

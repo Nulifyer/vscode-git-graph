@@ -8,15 +8,15 @@ import { ExtensionState } from './extensionState';
 import { Logger } from './logger';
 import { RepoFileWatcher } from './repoFileWatcher';
 import { RepoManager } from './repoManager';
-import { ErrorInfo, GitConfigLocation, GitGraphViewInitialState, GitPushBranchMode, GitRepoSet, LoadGitGraphViewTo, RequestMessage, ResponseMessage, TabIconColourTheme } from './types';
+import { ErrorInfo, GitConfigLocation, GitGraphityViewInitialState, GitPushBranchMode, GitRepoSet, LoadGitGraphityViewTo, RequestMessage, ResponseMessage, TabIconColourTheme } from './types';
 import { UNABLE_TO_FIND_GIT_MSG, UNCOMMITTED, archive, copyFilePathToClipboard, copyToClipboard, createPullRequest, getNonce, openExtensionSettings, openExternalUrl, openFile, showErrorMessage, viewDiff, viewDiffWithWorkingFile, viewFileAtRevision, viewScm } from './utils';
 import { Disposable, toDisposable } from './utils/disposable';
 
 /**
- * Manages the Git Graph View.
+ * Manages the Git Graphity View.
  */
-export class GitGraphView extends Disposable {
-	public static currentPanel: GitGraphView | undefined;
+export class GitGraphityView extends Disposable {
+	public static currentPanel: GitGraphityView | undefined;
 
 	private readonly panel: vscode.WebviewPanel;
 	private readonly extensionPath: string;
@@ -30,54 +30,54 @@ export class GitGraphView extends Disposable {
 	private isGraphViewLoaded: boolean = false;
 	private isPanelVisible: boolean = true;
 	private currentRepo: string | null = null;
-	private loadViewTo: LoadGitGraphViewTo = null; // Is used by the next call to getHtmlForWebview, and is then reset to null
+	private loadViewTo: LoadGitGraphityViewTo = null; // Is used by the next call to getHtmlForWebview, and is then reset to null
 
 	private loadRepoInfoRefreshId: number = 0;
 	private loadCommitsRefreshId: number = 0;
 
 	/**
-	 * If a Git Graph View already exists, show and update it. Otherwise, create a Git Graph View.
+	 * If a Git Graphity View already exists, show and update it. Otherwise, create a Git Graphity View.
 	 * @param extensionPath The absolute file path of the directory containing the extension.
-	 * @param dataSource The Git Graph DataSource instance.
-	 * @param extensionState The Git Graph ExtensionState instance.
-	 * @param avatarManger The Git Graph AvatarManager instance.
-	 * @param repoManager The Git Graph RepoManager instance.
-	 * @param logger The Git Graph Logger instance.
+	 * @param dataSource The Git Graphity DataSource instance.
+	 * @param extensionState The Git Graphity ExtensionState instance.
+	 * @param avatarManger The Git Graphity AvatarManager instance.
+	 * @param repoManager The Git Graphity RepoManager instance.
+	 * @param logger The Git Graphity Logger instance.
 	 * @param loadViewTo What to load the view to.
 	 */
-	public static createOrShow(extensionPath: string, dataSource: DataSource, extensionState: ExtensionState, avatarManager: AvatarManager, repoManager: RepoManager, logger: Logger, loadViewTo: LoadGitGraphViewTo) {
+	public static createOrShow(extensionPath: string, dataSource: DataSource, extensionState: ExtensionState, avatarManager: AvatarManager, repoManager: RepoManager, logger: Logger, loadViewTo: LoadGitGraphityViewTo) {
 		const column = vscode.window.activeTextEditor ? vscode.window.activeTextEditor.viewColumn : undefined;
 
-		if (GitGraphView.currentPanel) {
-			// If Git Graph panel already exists
-			if (GitGraphView.currentPanel.isPanelVisible) {
-				// If the Git Graph panel is visible
+		if (GitGraphityView.currentPanel) {
+			// If Git Graphity panel already exists
+			if (GitGraphityView.currentPanel.isPanelVisible) {
+				// If the Git Graphity panel is visible
 				if (loadViewTo !== null) {
-					GitGraphView.currentPanel.respondLoadRepos(repoManager.getRepos(), loadViewTo);
+					GitGraphityView.currentPanel.respondLoadRepos(repoManager.getRepos(), loadViewTo);
 				}
 			} else {
-				// If the Git Graph panel is not visible
-				GitGraphView.currentPanel.loadViewTo = loadViewTo;
+				// If the Git Graphity panel is not visible
+				GitGraphityView.currentPanel.loadViewTo = loadViewTo;
 			}
-			GitGraphView.currentPanel.panel.reveal(column);
+			GitGraphityView.currentPanel.panel.reveal(column);
 		} else {
-			// If Git Graph panel doesn't already exist
-			GitGraphView.currentPanel = new GitGraphView(extensionPath, dataSource, extensionState, avatarManager, repoManager, logger, loadViewTo, column);
+			// If Git Graphity panel doesn't already exist
+			GitGraphityView.currentPanel = new GitGraphityView(extensionPath, dataSource, extensionState, avatarManager, repoManager, logger, loadViewTo, column);
 		}
 	}
 
 	/**
-	 * Creates a Git Graph View.
+	 * Creates a Git Graphity View.
 	 * @param extensionPath The absolute file path of the directory containing the extension.
-	 * @param dataSource The Git Graph DataSource instance.
-	 * @param extensionState The Git Graph ExtensionState instance.
-	 * @param avatarManger The Git Graph AvatarManager instance.
-	 * @param repoManager The Git Graph RepoManager instance.
-	 * @param logger The Git Graph Logger instance.
+	 * @param dataSource The Git Graphity DataSource instance.
+	 * @param extensionState The Git Graphity ExtensionState instance.
+	 * @param avatarManger The Git Graphity AvatarManager instance.
+	 * @param repoManager The Git Graphity RepoManager instance.
+	 * @param logger The Git Graphity Logger instance.
 	 * @param loadViewTo What to load the view to.
 	 * @param column The column the view should be loaded in.
 	 */
-	private constructor(extensionPath: string, dataSource: DataSource, extensionState: ExtensionState, avatarManager: AvatarManager, repoManager: RepoManager, logger: Logger, loadViewTo: LoadGitGraphViewTo, column: vscode.ViewColumn | undefined) {
+	private constructor(extensionPath: string, dataSource: DataSource, extensionState: ExtensionState, avatarManager: AvatarManager, repoManager: RepoManager, logger: Logger, loadViewTo: LoadGitGraphityViewTo, column: vscode.ViewColumn | undefined) {
 		super();
 		this.extensionPath = extensionPath;
 		this.avatarManager = avatarManager;
@@ -89,7 +89,7 @@ export class GitGraphView extends Disposable {
 		this.loadViewTo = loadViewTo;
 
 		const config = getConfig();
-		this.panel = vscode.window.createWebviewPanel('git-graph', 'Git Graph', column || vscode.ViewColumn.One, {
+		this.panel = vscode.window.createWebviewPanel('git-graphity', 'Git Graphity', column || vscode.ViewColumn.One, {
 			enableScripts: true,
 			localResourceRoots: [vscode.Uri.file(path.join(extensionPath, 'media'))],
 			retainContextWhenHidden: config.retainContextWhenHidden
@@ -103,13 +103,13 @@ export class GitGraphView extends Disposable {
 
 
 		this.registerDisposables(
-			// Dispose Git Graph View resources when disposed
+			// Dispose Git Graphity View resources when disposed
 			toDisposable(() => {
-				GitGraphView.currentPanel = undefined;
+				GitGraphityView.currentPanel = undefined;
 				this.repoFileWatcher.stop();
 			}),
 
-			// Dispose this Git Graph View when the Webview Panel is disposed
+			// Dispose this Git Graphity View when the Webview Panel is disposed
 			this.panel.onDidDispose(() => this.dispose()),
 
 			// Register a callback that is called when the view is shown or hidden
@@ -125,7 +125,7 @@ export class GitGraphView extends Disposable {
 				}
 			}),
 
-			// Subscribe to events triggered when a repository is added or deleted from Git Graph
+			// Subscribe to events triggered when a repository is added or deleted from Git Graphity
 			repoManager.onDidChangeRepos((event) => {
 				if (!this.panel.visible) return;
 				const loadViewTo = event.loadRepo !== null ? { repo: event.loadRepo } : null;
@@ -153,7 +153,7 @@ export class GitGraphView extends Disposable {
 			this.panel
 		);
 
-		// Instantiate a RepoFileWatcher that watches for file changes in the repository currently open in the Git Graph View
+		// Instantiate a RepoFileWatcher that watches for file changes in the repository currently open in the Git Graphity View
 		this.repoFileWatcher = new RepoFileWatcher(logger, () => {
 			if (this.panel.visible) {
 				this.sendMessage({ command: 'refresh' });
@@ -163,7 +163,7 @@ export class GitGraphView extends Disposable {
 		// Render the content of the Webview
 		this.update();
 
-		this.logger.log('Created Git Graph View' + (loadViewTo !== null ? ' (active repo: ' + loadViewTo.repo + ')' : ''));
+		this.logger.log('Created Git Graphity View' + (loadViewTo !== null ? ' (active repo: ' + loadViewTo.repo + ')' : ''));
 	}
 
 	/**
@@ -660,15 +660,15 @@ export class GitGraphView extends Disposable {
 	 */
 	private sendMessage(msg: ResponseMessage) {
 		if (this.isDisposed()) {
-			this.logger.log('The Git Graph View has already been disposed, ignored sending "' + msg.command + '" message.');
+			this.logger.log('The Git Graphity View has already been disposed, ignored sending "' + msg.command + '" message.');
 		} else {
 			this.panel.webview.postMessage(msg).then(
 				() => { },
 				() => {
 					if (this.isDisposed()) {
-						this.logger.log('The Git Graph View was disposed while sending "' + msg.command + '" message.');
+						this.logger.log('The Git Graphity View was disposed while sending "' + msg.command + '" message.');
 					} else {
-						this.logger.logError('Unable to send "' + msg.command + '" message to the Git Graph View.');
+						this.logger.logError('Unable to send "' + msg.command + '" message to the Git Graphity View.');
 					}
 				}
 			);
@@ -688,7 +688,7 @@ export class GitGraphView extends Disposable {
 	 */
 	private getHtmlForWebview() {
 		const config = getConfig(), nonce = getNonce();
-		const initialState: GitGraphViewInitialState = {
+		const initialState: GitGraphityViewInitialState = {
 			config: {
 				commitDetailsView: config.commitDetailsView,
 				commitOrdering: config.commitOrder,
@@ -730,13 +730,13 @@ export class GitGraphView extends Disposable {
 
 		let body, numRepos = Object.keys(initialState.repos).length, colorVars = '', colorParams = '';
 		for (let i = 0; i < initialState.config.graph.colours.length; i++) {
-			colorVars += '--git-graph-color' + i + ':' + initialState.config.graph.colours[i] + '; ';
-			colorParams += '[data-color="' + i + '"]{--git-graph-color:var(--git-graph-color' + i + ');} ';
+			colorVars += '--git-graphity-color' + i + ':' + initialState.config.graph.colours[i] + '; ';
+			colorParams += '[data-color="' + i + '"]{--git-graphity-color:var(--git-graphity-color' + i + ');} ';
 		}
 
 		if (this.dataSource.isGitExecutableUnknown()) {
 			body = `<body class="unableToLoad">
-			<h2>Unable to load Git Graph</h2>
+			<h2>Unable to load Git Graphity</h2>
 			<p class="unableToLoadMessage">${UNABLE_TO_FIND_GIT_MSG}</p>
 			</body>`;
 		} else if (numRepos > 0) {
@@ -764,9 +764,9 @@ export class GitGraphView extends Disposable {
 			</body>`;
 		} else {
 			body = `<body class="unableToLoad">
-			<h2>Unable to load Git Graph</h2>
-			<p class="unableToLoadMessage">No Git repositories were found in the current workspace when it was last scanned by Git Graph.</p>
-			<p>If your repositories are in subfolders of the open workspace folder(s), make sure you have set the Git Graph Setting "git-graph.maxDepthOfRepoSearch" appropriately (read the <a href="https://github.com/mhutchie/vscode-git-graph/wiki/Extension-Settings#max-depth-of-repo-search" target="_blank">documentation</a> for more information).</p>
+			<h2>Unable to load Git Graphity</h2>
+			<p class="unableToLoadMessage">No Git repositories were found in the current workspace when it was last scanned by Git Graphity.</p>
+			<p>If your repositories are in subfolders of the open workspace folder(s), make sure you have set the Git Graphity Setting "git-graphity.maxDepthOfRepoSearch" appropriately (read the <a href="https://github.com/mhutchie/vscode-git-graph/wiki/Extension-Settings#max-depth-of-repo-search" target="_blank">documentation</a> for more information).</p>
 			<p><div id="rescanForReposBtn" class="roundedBtn">Re-scan the current workspace for repositories</div></p>
 			<script nonce="${nonce}">(function(){ var api = acquireVsCodeApi(); document.getElementById('rescanForReposBtn').addEventListener('click', function(){ api.postMessage({command: 'rescanForRepos'}); }); })();</script>
 			</body>`;
@@ -781,7 +781,7 @@ export class GitGraphView extends Disposable {
 				<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${standardiseCspSource(this.panel.webview.cspSource)} 'unsafe-inline'; script-src 'nonce-${nonce}'; img-src data:;">
 				<meta name="viewport" content="width=device-width, initial-scale=1.0">
 				<link rel="stylesheet" type="text/css" href="${this.getMediaUri('out.min.css')}">
-				<title>Git Graph</title>
+				<title>Git Graphity</title>
 				<style>body{${colorVars}} ${colorParams}</style>
 			</head>
 			${body}
@@ -826,7 +826,7 @@ export class GitGraphView extends Disposable {
 	 * @param repos The set of known repositories.
 	 * @param loadViewTo What to load the view to.
 	 */
-	private respondLoadRepos(repos: GitRepoSet, loadViewTo: LoadGitGraphViewTo) {
+	private respondLoadRepos(repos: GitRepoSet, loadViewTo: LoadGitGraphityViewTo) {
 		this.sendMessage({
 			command: 'loadRepos',
 			repos: repos,

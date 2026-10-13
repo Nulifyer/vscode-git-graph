@@ -2,7 +2,7 @@ import * as fs from 'fs';
 import * as vscode from 'vscode';
 import { Avatar, AvatarCache } from './avatarManager';
 import { getConfig } from './config';
-import { BooleanOverride, CodeReview, ErrorInfo, FileViewType, GitGraphViewGlobalState, GitGraphViewWorkspaceState, GitRepoSet, GitRepoState, RepoCommitOrdering } from './types';
+import { BooleanOverride, CodeReview, ErrorInfo, FileViewType, GitGraphityViewGlobalState, GitGraphityViewWorkspaceState, GitRepoSet, GitRepoState, RepoCommitOrdering } from './types';
 import { GitExecutable, getPathFromStr } from './utils';
 import { Disposable } from './utils/disposable';
 import { Event } from './utils/event';
@@ -39,13 +39,13 @@ export const DEFAULT_REPO_STATE: GitRepoState = {
 	workspaceFolderIndex: null
 };
 
-const DEFAULT_GIT_GRAPH_VIEW_GLOBAL_STATE: GitGraphViewGlobalState = {
+const DEFAULT_GIT_GRAPHITY_VIEW_GLOBAL_STATE: GitGraphityViewGlobalState = {
 	alwaysAcceptCheckoutCommit: false,
 	issueLinkingConfig: null,
 	pushTagSkipRemoteCheck: false
 };
 
-const DEFAULT_GIT_GRAPH_VIEW_WORKSPACE_STATE: GitGraphViewWorkspaceState = {
+const DEFAULT_GIT_GRAPHITY_VIEW_WORKSPACE_STATE: GitGraphityViewWorkspaceState = {
 	findIsCaseSensitive: false,
 	findIsRegex: false,
 	findOpenCommitDetailsView: false
@@ -59,7 +59,7 @@ export interface CodeReviewData {
 export type CodeReviews = { [repo: string]: { [id: string]: CodeReviewData } };
 
 /**
- * Manages the Git Graph Extension State, which stores data in both the Visual Studio Code Global & Workspace State.
+ * Manages the Git Graphity Extension State, which stores data in both the Visual Studio Code Global & Workspace State.
  */
 export class ExtensionState extends Disposable {
 	private readonly globalState: vscode.Memento;
@@ -70,9 +70,9 @@ export class ExtensionState extends Disposable {
 	private avatarStorageAvailable: boolean = false;
 
 	/**
-	 * Creates the Git Graph Extension State.
+	 * Creates the Git Graphity Extension State.
 	 * @param context The context of the extension.
-	 * @param onDidChangeGitExecutable The Event emitting the Git executable for Git Graph to use.
+	 * @param onDidChangeGitExecutable The Event emitting the Git executable for Git Graphity to use.
 	 */
 	constructor(context: vscode.ExtensionContext, onDidChangeGitExecutable: Event<GitExecutable>) {
 		super();
@@ -157,19 +157,19 @@ export class ExtensionState extends Disposable {
 	/* Global View State */
 
 	/**
-	 * Get the global state of the Git Graph View.
+	 * Get the global state of the Git Graphity View.
 	 * @returns The global state.
 	 */
 	public getGlobalViewState() {
-		const globalViewState = this.globalState.get<GitGraphViewGlobalState>(GLOBAL_VIEW_STATE, DEFAULT_GIT_GRAPH_VIEW_GLOBAL_STATE);
-		return Object.assign({}, DEFAULT_GIT_GRAPH_VIEW_GLOBAL_STATE, globalViewState);
+		const globalViewState = this.globalState.get<GitGraphityViewGlobalState>(GLOBAL_VIEW_STATE, DEFAULT_GIT_GRAPHITY_VIEW_GLOBAL_STATE);
+		return Object.assign({}, DEFAULT_GIT_GRAPHITY_VIEW_GLOBAL_STATE, globalViewState);
 	}
 
 	/**
-	 * Set the global state of the Git Graph View.
+	 * Set the global state of the Git Graphity View.
 	 * @param state The global state.
 	 */
-	public setGlobalViewState(state: GitGraphViewGlobalState) {
+	public setGlobalViewState(state: GitGraphityViewGlobalState) {
 		return this.updateGlobalState(GLOBAL_VIEW_STATE, state);
 	}
 
@@ -177,19 +177,19 @@ export class ExtensionState extends Disposable {
 	/* Workspace View State */
 
 	/**
-	 * Get the workspace state of the Git Graph View.
+	 * Get the workspace state of the Git Graphity View.
 	 * @returns The workspace state.
 	 */
 	public getWorkspaceViewState() {
-		const workspaceViewState = this.workspaceState.get<GitGraphViewWorkspaceState>(WORKSPACE_VIEW_STATE, DEFAULT_GIT_GRAPH_VIEW_WORKSPACE_STATE);
-		return Object.assign({}, DEFAULT_GIT_GRAPH_VIEW_WORKSPACE_STATE, workspaceViewState);
+		const workspaceViewState = this.workspaceState.get<GitGraphityViewWorkspaceState>(WORKSPACE_VIEW_STATE, DEFAULT_GIT_GRAPHITY_VIEW_WORKSPACE_STATE);
+		return Object.assign({}, DEFAULT_GIT_GRAPHITY_VIEW_WORKSPACE_STATE, workspaceViewState);
 	}
 
 	/**
-	 * Set the workspace state of the Git Graph View.
+	 * Set the workspace state of the Git Graphity View.
 	 * @param state The workspace state.
 	 */
-	public setWorkspaceViewState(state: GitGraphViewWorkspaceState) {
+	public setWorkspaceViewState(state: GitGraphityViewWorkspaceState) {
 		return this.updateWorkspaceState(WORKSPACE_VIEW_STATE, state);
 	}
 
@@ -235,7 +235,7 @@ export class ExtensionState extends Disposable {
 	/* Last Known Git Path */
 
 	/**
-	 * Get the last known path of the Git executable used by Git Graph.
+	 * Get the last known path of the Git executable used by Git Graphity.
 	 * @returns The path of the Git executable.
 	 */
 	public getLastKnownGitPath() {
@@ -243,7 +243,7 @@ export class ExtensionState extends Disposable {
 	}
 
 	/**
-	 * Set the last known path of the Git executable used by Git Graph.
+	 * Set the last known path of the Git executable used by Git Graphity.
 	 * @param path The path of the Git executable.
 	 */
 	private setLastKnownGitPath(path: string) {
@@ -262,7 +262,7 @@ export class ExtensionState extends Disposable {
 	}
 
 	/**
-	 * Gets the path that is used to store avatars globally in Git Graph.
+	 * Gets the path that is used to store avatars globally in Git Graphity.
 	 * @returns The folder path.
 	 */
 	public getAvatarStoragePath() {
@@ -270,7 +270,7 @@ export class ExtensionState extends Disposable {
 	}
 
 	/**
-	 * Gets the cache of avatars known to Git Graph.
+	 * Gets the cache of avatars known to Git Graphity.
 	 * @returns The avatar cache.
 	 */
 	public getAvatarCache() {
@@ -278,7 +278,7 @@ export class ExtensionState extends Disposable {
 	}
 
 	/**
-	 * Add a new avatar to the cache of avatars known to Git Graph.
+	 * Add a new avatar to the cache of avatars known to Git Graphity.
 	 * @param email The email address that the avatar is for.
 	 * @param avatar The details of the avatar.
 	 */
@@ -289,7 +289,7 @@ export class ExtensionState extends Disposable {
 	}
 
 	/**
-	 * Removes an avatar from the cache of avatars known to Git Graph.
+	 * Removes an avatar from the cache of avatars known to Git Graphity.
 	 * @param email The email address of the avatar to remove.
 	 */
 	public removeAvatarFromCache(email: string) {
@@ -299,7 +299,7 @@ export class ExtensionState extends Disposable {
 	}
 
 	/**
-	 * Clear all avatars from the cache of avatars known to Git Graph.
+	 * Clear all avatars from the cache of avatars known to Git Graphity.
 	 * @returns A Thenable resolving to the ErrorInfo that resulted from executing this method.
 	 */
 	public clearAvatarCache() {
@@ -439,7 +439,7 @@ export class ExtensionState extends Disposable {
 	/* Update State Memento's */
 
 	/**
-	 * Update the Git Graph Global State with a new <key, value> pair.
+	 * Update the Git Graphity Global State with a new <key, value> pair.
 	 * @param key The key.
 	 * @param value The value.
 	 * @returns A Thenable resolving to the ErrorInfo that resulted from updating the Global State.
@@ -447,12 +447,12 @@ export class ExtensionState extends Disposable {
 	private updateGlobalState(key: string, value: any): Thenable<ErrorInfo> {
 		return this.globalState.update(key, value).then(
 			() => null,
-			() => 'Visual Studio Code was unable to save the Git Graph Global State Memento.'
+			() => 'Visual Studio Code was unable to save the Git Graphity Global State Memento.'
 		);
 	}
 
 	/**
-	 * Update the Git Graph Workspace State with a new <key, value> pair.
+	 * Update the Git Graphity Workspace State with a new <key, value> pair.
 	 * @param key The key.
 	 * @param value The value.
 	 * @returns A Thenable resolving to the ErrorInfo that resulted from updating the Workspace State.
@@ -460,7 +460,7 @@ export class ExtensionState extends Disposable {
 	private updateWorkspaceState(key: string, value: any): Thenable<ErrorInfo> {
 		return this.workspaceState.update(key, value).then(
 			() => null,
-			() => 'Visual Studio Code was unable to save the Git Graph Workspace State Memento.'
+			() => 'Visual Studio Code was unable to save the Git Graphity Workspace State Memento.'
 		);
 	}
 }

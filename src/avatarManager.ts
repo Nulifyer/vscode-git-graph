@@ -26,10 +26,10 @@ export class AvatarManager extends Disposable {
 	private gitLabTimeout: number = 0;
 
 	/**
-	 * Creates the Git Graph Avatar Manager.
-	 * @param dataSource The Git Graph DataSource instance.
-	 * @param extensionState The Git Graph ExtensionState instance.
-	 * @param logger The Git Graph Logger instance.
+	 * Creates the Git Graphity Avatar Manager.
+	 * @param dataSource The Git Graphity DataSource instance.
+	 * @param extensionState The Git Graphity ExtensionState instance.
+	 * @param logger The Git Graphity Logger instance.
 	 */
 	constructor(dataSource: DataSource, extensionState: ExtensionState, logger: Logger) {
 		super();
@@ -227,7 +227,7 @@ export class AvatarManager extends Disposable {
 
 		https.get({
 			hostname: 'api.github.com', path: '/repos/' + owner + '/' + repo + '/commits/' + avatarRequest.commits[commitIndex],
-			headers: { 'User-Agent': 'vscode-git-graph' },
+			headers: { 'User-Agent': 'vscode-git-graphity' },
 			agent: false, timeout: 15000
 		}, (res) => {
 			let respBody = '';
@@ -299,7 +299,7 @@ export class AvatarManager extends Disposable {
 
 		https.get({
 			hostname: 'gitlab.com', path: '/api/v4/users?search=' + avatarRequest.email,
-			headers: { 'User-Agent': 'vscode-git-graph' },
+			headers: { 'User-Agent': 'vscode-git-graphity' },
 			agent: false, timeout: 15000
 		}, (res) => {
 			let respBody = '';
@@ -380,7 +380,7 @@ export class AvatarManager extends Disposable {
 
 			https.get({
 				hostname: imgUrl.hostname, path: imgUrl.pathname + imgUrl.search,
-				headers: { 'User-Agent': 'vscode-git-graph' },
+				headers: { 'User-Agent': 'vscode-git-graphity' },
 				agent: false, timeout: 15000
 			}, (res) => {
 				let imageBufferArray: Buffer[] = [];
@@ -445,10 +445,10 @@ export class AvatarManager extends Disposable {
 		this.logger.log('Saved Avatar for ' + maskEmail(email));
 		this.emitAvatar(email).then(
 			(sent) => this.logger.log(sent
-				? 'Sent Avatar for ' + maskEmail(email) + ' to the Git Graph View'
-				: 'Avatar for ' + maskEmail(email) + ' is ready to be used the next time the Git Graph View is opened'
+				? 'Sent Avatar for ' + maskEmail(email) + ' to the Git Graphity View'
+				: 'Avatar for ' + maskEmail(email) + ' is ready to be used the next time the Git Graphity View is opened'
 			),
-			() => this.logger.log('Failed to Send Avatar for ' + maskEmail(email) + ' to the Git Graph View')
+			() => this.logger.log('Failed to Send Avatar for ' + maskEmail(email) + ' to the Git Graphity View')
 		);
 	}
 }

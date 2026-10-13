@@ -17,11 +17,11 @@ function fatal(err: any): void {
 
 function main(argv: string[]): void {
 	if (argv.length !== 5) return fatal('Wrong number of arguments');
-	if (!process.env['VSCODE_GIT_GRAPH_ASKPASS_HANDLE']) return fatal('Missing handle');
-	if (!process.env['VSCODE_GIT_GRAPH_ASKPASS_PIPE']) return fatal('Missing pipe');
+	if (!process.env['VSCODE_GIT_GRAPHITY_ASKPASS_HANDLE']) return fatal('Missing handle');
+	if (!process.env['VSCODE_GIT_GRAPHITY_ASKPASS_PIPE']) return fatal('Missing pipe');
 
-	const output = process.env['VSCODE_GIT_GRAPH_ASKPASS_PIPE']!;
-	const socketPath = process.env['VSCODE_GIT_GRAPH_ASKPASS_HANDLE']!;
+	const output = process.env['VSCODE_GIT_GRAPHITY_ASKPASS_PIPE']!;
+	const socketPath = process.env['VSCODE_GIT_GRAPHITY_ASKPASS_HANDLE']!;
 
 	const req = http.request({ socketPath, path: '/', method: 'POST' }, res => {
 		if (res.statusCode !== 200) return fatal('Bad status code: ' + res.statusCode);
