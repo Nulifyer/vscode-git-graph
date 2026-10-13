@@ -54,7 +54,8 @@ const webviewProbe = `
     const layoutResult={theme:document.body.dataset.vscodeThemeId,width:bounds.width,centered:Math.abs(bounds.left+bounds.width/2-innerWidth/2)<1 && Math.abs(bounds.top+bounds.height/2-innerHeight/2)<1,
       primaryBackground:style.backgroundColor,expectedPrimaryBackground:color('var(--vscode-button-background)'),primaryForeground:style.color,expectedPrimaryForeground:color('var(--vscode-button-foreground)'),
       checkboxWidth:checkbox.getBoundingClientRect().width,indicatorWidth:indicator.getBoundingClientRect().width,toggled,pickerWidth:picker.getBoundingClientRect().width,
-      noTextarea:!dialog.querySelector('textarea'),footerActions:!!primary.closest('footer'),toolbarHeight:document.getElementById('controls').clientHeight};
+      noTextarea:!dialog.querySelector('textarea'),footerActions:!!primary.closest('footer'),toolbarHeight:document.querySelector('.workflowToolbar').clientHeight,controlsHeight:document.getElementById('controls').clientHeight,
+      toolbarSingleRow:[...document.querySelector('.workflowToolbar').children].filter(child=>getComputedStyle(child).display!=='none').every(child=>Math.abs(child.getBoundingClientRect().top-document.querySelector('.workflowToolbar').getBoundingClientRect().top)<1)};
     dialog.querySelector('header [aria-label=Close]').click();
     document.getElementById('settingsBtn').click();
     document.getElementById('editRepoName').click();
@@ -278,7 +279,8 @@ exports.run = async () => {
     assert(dialog.centered && dialog.width===440,'Layout dialog is centered and compact');
     assert(dialog.checkboxWidth===16 && dialog.indicatorWidth===16 && dialog.toggled,'Visible checkbox has a working 16px input target');
     assert(dialog.noTextarea && dialog.pickerWidth>350 && dialog.footerActions,'Layout uses a branch picker and footer actions');
-    assert(dialog.toolbarHeight===40,'Repository actions stay in one toolbar row');
+    assert.equal(dialog.toolbarHeight,24,'Repository action toolbar stays 24px high');
+    assert.equal(dialog.toolbarSingleRow,true,'Repository actions stay in one toolbar row when branch filters wrap');
     dialogSamples.push(dialog);
   }
   if (${JSON.stringify(previewDirectory)}) {

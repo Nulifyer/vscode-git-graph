@@ -1,6 +1,6 @@
 # Change Log
 
-## 1.32.2 - 2026-10-12
+## 1.32.3 - 2026-10-12
 
 - Replace the extra workflow button row with compact workbench actions and an overflow menu.
 - Model workflow dialogs on VS Code controls with aligned forms, list rows, and footer actions.
@@ -20,6 +20,10 @@
 - Add collapsible history, pinned branch lanes, compact reference labels, ancestry highlighting, and keyboard context menus.
 - Add disposable real-Git tests and VS Code host checks for history workflows.
 
+
+## 1.32.2 - 2026-10-12
+
+Publication stopped at a CI assertion that assumed branch filters could not wrap in a narrow window. No VSIX or Marketplace package was published. Version 1.32.3 checks the action toolbar separately.
 
 ## 1.31.5 - 2026-10-12
 
