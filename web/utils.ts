@@ -57,6 +57,8 @@ const GIT_SIGNATURE_STATUS_DESCRIPTIONS = {
 	'E': 'Signature could not be checked',
 	'B': 'Bad Signature'
 };
+const REF_LABEL_MAX_LENGTH = 32; // Characters shown in a reference label before its middle is shortened
+const REF_REMOTE_LABEL_MAX_LENGTH = 16; // Characters shown in a remote name combined with a local branch label
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 const REF_INVALID_REGEX = /^[-\/].*|[\\" ><~^:?*[]|\.\.|\/\/|\/\.|@{|[.\/]$|\.lock$|^@$/g;
 
@@ -246,6 +248,41 @@ function unescapeHtml(str: string) {
 	return str.replace(HTML_UNESCAPER_REGEX, (match) => HTML_UNESCAPES[match]);
 }
 
+/**
+ * Shorten a name by removing characters from its middle, so that both its prefix and its distinguishing end stay visible.
+ * @param str The name to shorten.
+ * @param maxLength The maximum number of characters to return, including the ellipsis.
+ * @returns The shortened name.
+ */
+function abbreviateMiddle(str: string, maxLength: number) {
+	if (str.length <= maxLength) return str;
+	const tail = Math.ceil((maxLength - 1) * 0.4), head = Math.max(maxLength - 1 - tail, 1);
+	return str.substring(0, head) + '…' + str.substring(str.length - tail);
+}
+
+let textMeasureContext: CanvasRenderingContext2D | null = null;
+
+/**
+ * Shorten a name from the middle until it fits a width, measuring text on a canvas so no page layout is forced.
+ * @param str The name to shorten.
+ * @param maxWidth The available width in pixels.
+ * @param font The CSS font the name is drawn with.
+ * @returns The name, shortened if needed.
+ */
+function abbreviateMiddleToWidth(str: string, maxWidth: number, font: string) {
+	if (textMeasureContext === null) textMeasureContext = document.createElement('canvas').getContext('2d');
+	const context = textMeasureContext;
+	if (context === null) return str;
+	context.font = font;
+	if (context.measureText(str).width <= maxWidth) return str;
+	let low = 3, high = str.length - 1;
+	while (low < high) {
+		const mid = Math.ceil((low + high) / 2);
+		if (context.measureText(abbreviateMiddle(str, mid)).width <= maxWidth) low = mid; else high = mid - 1;
+	}
+	return abbreviateMiddle(str, low);
+}
+
 
 /* Formatters */
 
@@ -305,9 +342,18 @@ function formatShortDate(unixTimestamp: number) {
 		diff = Math.round(diff);
 		formatted = diff + ' ' + unit + (diff !== 1 ? 's' : '') + ' ago';
 	}
+	// A compact form for narrow tables: the year is implied for dates in the current year.
+	let compact = formatted;
+	if (format.type !== GG.DateFormatType.Relative) {
+		const monthDay = format.iso ? pad2(date.getMonth() + 1) + '-' + pad2(date.getDate()) : date.getDate() + ' ' + MONTHS[date.getMonth()];
+		compact = date.getFullYear() !== (new Date()).getFullYear()
+			? dateStr
+			: format.type === GG.DateFormatType.DateAndTime ? monthDay + ' ' + hourMinsStr : monthDay;
+	}
 	return {
 		title: dateStr + ' ' + hourMinsStr + ':' + pad2(date.getSeconds()),
-		formatted: formatted
+		formatted: formatted,
+		compact: compact
 	};
 }
 
@@ -422,7 +468,9 @@ function alterClassOfCollection(elems: HTMLCollectionOf<HTMLElement>, className:
 function getChildNodesWithTextContent(elem: Node) {
 	let textChildren: Node[] = [];
 	for (let i = 0; i < elem.childNodes.length; i++) {
-		if (elem.childNodes[i].childNodes.length > 0) {
+		if (elem.childNodes[i] instanceof Element && (<Element>elem.childNodes[i]).classList.contains('refOverflow')) {
+			continue; // The "+N" reference chip is a count, not commit text, so it is never searched or highlighted
+		} else if (elem.childNodes[i].childNodes.length > 0) {
 			textChildren.push(...getChildNodesWithTextContent(elem.childNodes[i]));
 		} else if (elem.childNodes[i].textContent !== null && elem.childNodes[i].textContent !== '') {
 			textChildren.push(elem.childNodes[i]);

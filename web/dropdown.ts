@@ -73,7 +73,10 @@ class Dropdown {
 					this.filter();
 				}
 				this.elem.classList.toggle('dropdownOpen');
-				if (this.dropdownVisible) this.filterInput.focus();
+				if (this.dropdownVisible) {
+					this.fitOptionNames();
+					this.filterInput.focus();
+				}
 			} else if (this.dropdownVisible) {
 				if ((<HTMLElement>e.target).closest('.dropdown') !== this.elem) {
 					this.close();
@@ -86,7 +89,10 @@ class Dropdown {
 			}
 		}, true);
 		document.addEventListener('contextmenu', () => this.close(), true);
-		this.filterInput.addEventListener('keyup', () => this.filter());
+		this.filterInput.addEventListener('keyup', () => {
+			this.filter();
+			this.fitOptionNames();
+		});
 	}
 
 	/**
@@ -226,7 +232,7 @@ class Dropdown {
 			const escapedName = escapeHtml(this.options[i].name);
 			html += '<div class="dropdownOption' + (this.optionsSelected[i] ? ' ' + CLASS_SELECTED : '') + '" data-id="' + i + '" title="' + escapedName + '">' +
 				(this.multipleAllowed && this.optionsSelected[i] ? '<div class="dropdownOptionMultiSelected">' + SVG_ICONS.check + '</div>' : '') +
-				escapedName + (typeof this.options[i].hint === 'string' && this.options[i].hint !== '' ? '<span class="dropdownOptionHint">' + escapeHtml(this.options[i].hint!) + '</span>' : '') +
+				'<span class="dropdownOptionName">' + escapedName + '</span>' + (typeof this.options[i].hint === 'string' && this.options[i].hint !== '' ? '<span class="dropdownOptionHint">' + escapeHtml(this.options[i].hint!) + '</span>' : '') +
 				(this.showInfo ? '<div class="dropdownOptionInfo" title="' + escapeHtml(this.options[i].value) + '">' + SVG_ICONS.info + '</div>' : '') +
 				'</div>';
 		}
@@ -240,7 +246,39 @@ class Dropdown {
 		const menuElemRect = this.menuElem.getBoundingClientRect();
 		this.currentValueElem.style.width = Math.max(Math.ceil(menuElemRect.width) + ((this.showInfo || this.multipleAllowed) && menuElemRect.height < 272 ? 0 : 12), 138) + 'px';
 		this.menuElem.style.cssText = 'right:0; overflow-y:auto; max-height:297px;'; // Max height for the dropdown is [filter (31px) + 9.5 * dropdown item (28px) = 297px]
-		if (this.dropdownVisible) this.filter();
+		if (this.dropdownVisible) {
+			this.filter();
+			this.fitOptionNames();
+		}
+	}
+
+	/**
+	 * Shorten visible option names that do not fit from the middle, so that names sharing a long prefix stay distinguishable.
+	 */
+	private fitOptionNames() {
+		// Writes: restore full names, so the reads below see each name's natural width.
+		const names: { optionElem: HTMLElement, nameElem: HTMLElement, textNode: Text, name: string }[] = [];
+		for (let i = 0; i < this.options.length; i++) {
+			const optionElem = <HTMLElement>this.optionsElem.children[i];
+			if (optionElem.style.display === 'none') continue;
+			const nameElem = optionElem.querySelector<HTMLElement>('.dropdownOptionName');
+			if (nameElem === null || nameElem.firstChild === null || nameElem.firstChild.nodeType !== Node.TEXT_NODE) continue;
+			const textNode = <Text>nameElem.firstChild;
+			if (textNode.data !== this.options[i].name) textNode.data = this.options[i].name;
+			names.push({ optionElem, nameElem, textNode, name: this.options[i].name });
+		}
+		if (names.length === 0) return;
+
+		// Reads: one layout for every option. Fitting then measures text on a canvas instead of the page.
+		const font = getComputedStyle(names[0].nameElem).font;
+		const overflowing = names
+			.map((item) => ({ ...item, overflow: item.optionElem.scrollWidth - item.optionElem.clientWidth, width: item.nameElem.getBoundingClientRect().width }))
+			.filter((item) => item.overflow > 0);
+
+		// Writes: shorten only the names that overflow.
+		for (const item of overflowing) {
+			item.textNode.data = abbreviateMiddleToWidth(item.name, item.width - item.overflow, font);
+		}
 	}
 
 	/**

@@ -246,11 +246,77 @@ code{
 	text-overflow:ellipsis;
 	white-space:nowrap;
 	overflow:hidden;
-	flex-grow:1;
+	flex:1 1 0;
+	min-width:min(240px, 40%); /* Reference labels yield to the commit message beyond this width. */
 }
 
+/* Reference labels share the space left beside the message; labels that do not fit are counted in .refOverflow. */
+#commitTable tr.commit span.description .refList{
+	display:inline-flex;
+	flex:0 1 auto;
+	min-width:0;
+	overflow:hidden;
+}
+#commitTable tr.commit span.description .text ~ .refList{
+	flex:0 0 auto;
+	max-width:30%;
+}
+#commitTable tr.commit span.description .refList .gitRef{
+	display:inline-flex;
+	flex-shrink:0;
+}
+#commitTable tr.commit span.description .refList.overflowing .gitRef:first-child{
+	flex-shrink:1;
+	min-width:0;
+}
+#commitTable tr.commit span.description .refList .gitRef .gitRefName{
+	min-width:0;
+	flex-shrink:1;
+}
+#commitTable tr.commit span.description .refList .gitRef > svg{
+	flex-shrink:0;
+}
+#commitTable tr.commit span.description .refList .gitRefHeadRemote{
+	min-width:0;
+	flex-shrink:8; /* Remote names give up space before the branch name. */
+}
+#commitTable tr.commit span.description .refList .refHidden{
+	display:none;
+}
+.refOverflowProbe{
+	position:absolute;
+	visibility:hidden;
+}
+.refOverflow{
+	flex-shrink:0;
+	height:18px;
+	line-height:18px;
+	margin:2px 5px 0 0;
+	padding:0 6px;
+	border:1px solid var(--git-graphity-border);
+	border-radius:5px;
+	background-color:var(--vscode-badge-background);
+	color:var(--vscode-badge-foreground);
+	font-size:12px;
+	cursor:pointer;
+}
+
+/* Muted commits use a mixed text colour, not opacity, so they keep at least 4.5:1 contrast in the bundled themes. */
 #commitTable tr.commit.mute td.text, #commitTable tr.commit.mute span.description .text{
-	opacity:0.5;
+	color:color-mix(in srgb, var(--vscode-foreground) 72%, var(--vscode-editor-background));
+}
+
+/* Narrow tables show the compact date; the full date stays in the cell's tooltip. */
+#commitTable .dateCompact{
+	display:none;
+}
+@media screen and (max-width: 775px) {
+	#commitTable .dateFull{
+		display:none;
+	}
+	#commitTable .dateCompact{
+		display:inline;
+	}
 }
 
 #commitTable.fixedLayout table{
@@ -685,7 +751,7 @@ svg.openFolderIcon, svg.closedFolderIcon, svg.fileIcon{
 #commitTable tr.commit.mute.commitDetailsOpen span.description .text,
 #commitTable tr.commit.mute.findCurrentCommit td.text,
 #commitTable tr.commit.mute.findCurrentCommit span.description .text{
-	opacity:1;
+	color:inherit;
 }
 
 #commitTable tr.commit.flash{
@@ -751,6 +817,11 @@ body[data-theme-graph-colours="true"] .gitRef.active > svg{
 	padding:0 5px;
 }
 .gitRefHeadRemote{
+	max-width:120px;
+	overflow:hidden;
+	text-overflow:ellipsis;
+	white-space:nowrap;
+	vertical-align:top;
 	border-left:1px solid var(--git-graphity-border);
 	font-style:italic;
 }
@@ -761,6 +832,9 @@ body[data-theme-graph-colours="true"] .gitRef.active > svg{
 	background-color:transparent;
 }
 
+body.branchLabelsAlignedToGraph tr.commit td:first-child .gitRef{
+	max-width:240px; /* Labels in the graph column are clipped by the column, not fitted by .refList. */
+}
 body.branchLabelsAlignedToGraph tr.commit td:first-child .gitRef:last-child{
 	margin-right:0;
 }
@@ -1154,7 +1228,6 @@ label > input[type=radio]:checked ~ .customRadio:after{
 @media (max-width: 620px) { .searchQueryRow { grid-template-columns: minmax(0,1fr) 110px; } .searchQueryRow > button { grid-column: 1 / -1; } .workflowFields { grid-template-columns: 1fr; } }
 
 /* Long references retain their full tooltip and context actions. */
-.gitRef { max-width: 240px; }
 .gitRef .gitRefName, .gitRef .gitTagName { max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: inline-block; vertical-align: bottom; }
 .pathMuted { opacity: .45; }
 .pathHighlight td { background-color: var(--vscode-list-hoverBackground); }

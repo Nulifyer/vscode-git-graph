@@ -945,15 +945,16 @@ class GitGraphityView {
 			if (this.collapsedGroups.has(commit.hash)) message += '<button class="expandHistoryGroup" data-hash="' + commit.hash + '">Expand</button>';
 			let date = formatShortDate(commit.date);
 			let branchLabels = getBranchLabels(commit.heads, commit.remotes);
-			let refBranches = '', refTags = '', j, k, refName, remoteName, refActive, refHtml, branchCheckedOutAtCommit: string | null = null;
+			let refBranches = '', refTags = '', j, k, refName, refFullName, remoteName, refActive, refHtml, branchCheckedOutAtCommit: string | null = null;
 
 			for (j = 0; j < branchLabels.heads.length; j++) {
 				refName = escapeHtml(branchLabels.heads[j].name);
 				refActive = branchLabels.heads[j].name === this.gitBranchHead;
-				refHtml = '<span class="gitRef head' + (refActive ? ' active' : '') + '" data-name="' + refName + '">' + SVG_ICONS.branch + '<span class="gitRefName" data-fullref="' + refName + '" title="' + refName + '">' + refName + '</span>';
+				refHtml = '<span class="gitRef head' + (refActive ? ' active' : '') + '" data-name="' + refName + '">' + SVG_ICONS.branch + '<span class="gitRefName" data-fullref="' + refName + '" title="' + refName + '">' + escapeHtml(abbreviateMiddle(branchLabels.heads[j].name, REF_LABEL_MAX_LENGTH)) + '</span>';
 				for (k = 0; k < branchLabels.heads[j].remotes.length; k++) {
 					remoteName = escapeHtml(branchLabels.heads[j].remotes[k]);
-					refHtml += '<span class="gitRefHeadRemote" data-remote="' + remoteName + '" data-fullref="' + escapeHtml(branchLabels.heads[j].remotes[k] + '/' + branchLabels.heads[j].name) + '">' + remoteName + '</span>';
+					refFullName = escapeHtml(branchLabels.heads[j].remotes[k] + '/' + branchLabels.heads[j].name);
+					refHtml += '<span class="gitRefHeadRemote" data-remote="' + remoteName + '" data-fullref="' + refFullName + '" title="' + refFullName + '">' + escapeHtml(abbreviateMiddle(branchLabels.heads[j].remotes[k], REF_REMOTE_LABEL_MAX_LENGTH)) + '</span>';
 				}
 				refHtml += '</span>';
 				refBranches = refActive ? refHtml + refBranches : refBranches + refHtml;
@@ -961,12 +962,12 @@ class GitGraphityView {
 			}
 			for (j = 0; j < branchLabels.remotes.length; j++) {
 				refName = escapeHtml(branchLabels.remotes[j].name);
-				refBranches += '<span class="gitRef remote" data-name="' + refName + '" data-remote="' + (branchLabels.remotes[j].remote !== null ? escapeHtml(branchLabels.remotes[j].remote!) : '') + '">' + SVG_ICONS.branch + '<span class="gitRefName" data-fullref="' + refName + '" title="' + refName + '">' + refName + '</span></span>';
+				refBranches += '<span class="gitRef remote" data-name="' + refName + '" data-remote="' + (branchLabels.remotes[j].remote !== null ? escapeHtml(branchLabels.remotes[j].remote!) : '') + '">' + SVG_ICONS.branch + '<span class="gitRefName" data-fullref="' + refName + '" title="' + refName + '">' + escapeHtml(abbreviateMiddle(branchLabels.remotes[j].name, REF_LABEL_MAX_LENGTH)) + '</span></span>';
 			}
 
 			for (j = 0; j < commit.tags.length; j++) {
 				refName = escapeHtml(commit.tags[j].name);
-				refTags += '<span class="gitRef tag" data-name="' + refName + '" data-tagtype="' + (commit.tags[j].annotated ? 'annotated' : 'lightweight') + '">' + SVG_ICONS.tag + '<span class="gitRefName" data-fullref="' + refName + '" title="' + refName + '">' + refName + '</span></span>';
+				refTags += '<span class="gitRef tag" data-name="' + refName + '" data-tagtype="' + (commit.tags[j].annotated ? 'annotated' : 'lightweight') + '">' + SVG_ICONS.tag + '<span class="gitRefName" data-fullref="' + refName + '" title="' + refName + '">' + escapeHtml(abbreviateMiddle(commit.tags[j].name, REF_LABEL_MAX_LENGTH)) + '</span></span>';
 			}
 
 			if (commit.stash !== null) {
@@ -981,11 +982,11 @@ class GitGraphityView {
 				) + '."></span>'
 				: '';
 
-			html += '<tr class="commit' + (commit.hash === currentHash ? ' current' : '') + (mutedCommits[i] ? ' mute' : '') + (this.highlightedPath.size ? this.highlightedPath.has(commit.hash) ? ' pathHighlight' : ' pathMuted' : '') + '"' + (commit.hash !== UNCOMMITTED ? '' : ' id="uncommittedChanges"') + ' tabindex="0" aria-rowindex="' + (i + 2) + '" aria-label="' + escapeHtml(commit.message + ', ' + [...commit.heads, ...commit.tags.map(tag => tag.name), ...commit.remotes.map(remote => remote.name)].join(', ') + ', ' + commit.author + ', ' + date.formatted + ', ' + abbrevCommit(commit.hash)) + '" data-id="' + i + '" data-color="' + vertexColours[i] + '">' +
-				(this.config.referenceLabels.branchLabelsAlignedToGraph ? '<td>' + (refBranches !== '' ? '<span style="margin-left:' + (widthsAtVertices[i] - 4) + 'px"' + refBranches.substring(5) : '') + '</td><td><span class="description">' + commitDot : '<td></td><td><span class="description">' + commitDot + refBranches) + (this.config.referenceLabels.tagLabelsOnRight ? message + refTags : refTags + message) + '</span></td>' +
-				(colVisibility.date ? '<td class="dateCol text" title="' + date.title + '">' + date.formatted + '</td>' : '') +
-				(colVisibility.author ? '<td class="authorCol text" title="' + escapeHtml(commit.author + ' <' + commit.email + '>') + '">' + (this.config.fetchAvatars ? '<span class="avatar" data-email="' + escapeHtml(commit.email) + '">' + (typeof this.avatars[commit.email] === 'string' ? '<img class="avatarImg" src="' + this.avatars[commit.email] + '">' : '') + '</span>' : '') + escapeHtml(commit.author) + '</td>' : '') +
-				(colVisibility.commit ? '<td class="text" title="' + escapeHtml(commit.hash) + '">' + abbrevCommit(commit.hash) + '</td>' : '') +
+			html += '<tr class="commit' + (commit.hash === currentHash ? ' current' : '') + (mutedCommits[i] ? ' mute' : '') + (this.highlightedPath.size ? this.highlightedPath.has(commit.hash) ? ' pathHighlight' : ' pathMuted' : '') + '"' + (commit.hash !== UNCOMMITTED ? '' : ' id="uncommittedChanges"') + ' tabindex="0" aria-rowindex="' + (i + 2) + '" aria-label="' + escapeHtml(commit.message + ', ' + [...commit.heads, ...commit.tags.map(tag => tag.name), ...commit.remotes.map(remote => remote.name)].join(', ') + (commit.hash !== UNCOMMITTED ? ', ' + commit.author : '') + ', ' + date.formatted + (commit.hash !== UNCOMMITTED ? ', ' + abbrevCommit(commit.hash) : '')) + '" data-id="' + i + '" data-color="' + vertexColours[i] + '">' +
+				(this.config.referenceLabels.branchLabelsAlignedToGraph ? '<td>' + (refBranches !== '' ? '<span style="margin-left:' + (widthsAtVertices[i] - 4) + 'px"' + refBranches.substring(5) : '') + '</td><td><span class="description">' + commitDot : '<td></td><td><span class="description">' + commitDot + (this.config.referenceLabels.tagLabelsOnRight ? refList(refBranches) : refList(refBranches + refTags))) + (this.config.referenceLabels.tagLabelsOnRight ? message + refList(refTags) : this.config.referenceLabels.branchLabelsAlignedToGraph ? refList(refTags) + message : message) + '</span></td>' +
+				(colVisibility.date ? dateCell(date) : '') +
+				(colVisibility.author ? commit.hash === UNCOMMITTED ? '<td class="authorCol text"></td>' : '<td class="authorCol text" title="' + escapeHtml(commit.author + ' <' + commit.email + '>') + '">' + (this.config.fetchAvatars ? '<span class="avatar" data-email="' + escapeHtml(commit.email) + '">' + (typeof this.avatars[commit.email] === 'string' ? '<img class="avatarImg" src="' + this.avatars[commit.email] + '">' : '') + '</span>' : '') + escapeHtml(commit.author) + '</td>' : '') +
+				(colVisibility.commit ? commit.hash === UNCOMMITTED ? '<td class="text"></td>' : '<td class="text" title="' + escapeHtml(commit.hash) + '">' + abbrevCommit(commit.hash) + '</td>' : '') +
 				'</tr>';
 		}
 		html += spacer(this.commits.length - cursor);
@@ -993,6 +994,7 @@ class GitGraphityView {
 		this.tableElem.innerHTML = '<table aria-label="Git history" aria-rowcount="' + (this.commits.length + 1) + '">' + html + '</table>';
 		this.footerElem.innerHTML = this.moreCommitsAvailable ? '<div id="loadMoreCommitsBtn" class="roundedBtn">Load More Commits</div>' : '';
 		this.makeTableResizable();
+		this.fitRefLabels();
 		this.findWidget.refresh();
 		this.renderedGitBranchHead = this.gitBranchHead;
 
@@ -1043,9 +1045,9 @@ class GitGraphityView {
 	private renderUncommittedChanges() {
 		const colVisibility = this.getColumnVisibility(), date = formatShortDate(this.commits[0].date);
 		document.getElementById('uncommittedChanges')!.innerHTML = '<td></td><td><b>' + escapeHtml(this.commits[0].message) + '</b></td>' +
-			(colVisibility.date ? '<td class="dateCol text" title="' + date.title + '">' + date.formatted + '</td>' : '') +
-			(colVisibility.author ? '<td class="authorCol text" title="* <>">*</td>' : '') +
-			(colVisibility.commit ? '<td class="text" title="*">*</td>' : '');
+			(colVisibility.date ? dateCell(date) : '') +
+			(colVisibility.author ? '<td class="authorCol text"></td>' : '') +
+			(colVisibility.commit ? '<td class="text"></td>' : '');
 	}
 
 	private renderFetchButton() {
@@ -1816,6 +1818,65 @@ class GitGraphityView {
 
 	/* Table Utils */
 
+	/**
+	 * Show as many reference labels as fit beside each visible commit message, and summarise the rest in a "+N" chip.
+	 * The chip opens the commit details, which list every reference of the commit.
+	 */
+	private fitRefLabels() {
+		const lists = [...this.tableElem.querySelectorAll<HTMLElement>('tr.commit .refList')];
+		if (lists.length === 0) return;
+
+		// Writes: restore every list to its natural state.
+		for (const list of lists) {
+			const chip = list.querySelector(':scope > .refOverflow');
+			if (chip !== null) chip.remove();
+			list.classList.remove('overflowing');
+			list.querySelectorAll('.refHidden').forEach((elem) => elem.classList.remove('refHidden'));
+		}
+		const probe = document.createElement('span');
+		probe.className = 'refOverflow refOverflowProbe';
+		probe.textContent = '+999';
+		this.tableElem.appendChild(probe);
+
+		// Reads: measure every list in a single layout, so repainting rows while scrolling stays cheap.
+		const chipWidth = probe.offsetWidth + REF_LABEL_GAP;
+		const plans = lists.map((list) => {
+			if (list.scrollWidth <= list.clientWidth + 1) return null;
+			const labels = [...list.querySelectorAll<HTMLElement>(':scope > .gitRef')];
+			const available = list.clientWidth - chipWidth;
+			let used = 0, shown = 0;
+			for (const label of labels) {
+				used += label.offsetWidth + REF_LABEL_GAP;
+				if (used > available && shown > 0) break;
+				shown++;
+			}
+			// When the first label alone is too wide, keep its branch name readable and count its remotes instead.
+			return { list, labels, shown, hideFirstRemotes: shown === 1 && labels[0].offsetWidth > available };
+		});
+
+		// Writes: hide what does not fit and summarise it in a "+N" chip that opens the commit details.
+		probe.remove();
+		for (const plan of plans) {
+			if (plan === null) continue;
+			const hidden: HTMLElement[] = plan.hideFirstRemotes ? [...plan.labels[0].querySelectorAll<HTMLElement>('.gitRefHeadRemote')] : [];
+			const hiddenNames = hidden.map((elem) => elem.dataset.fullref!);
+			for (const label of plan.labels.slice(plan.shown)) {
+				hidden.push(label);
+				label.querySelectorAll<HTMLElement>('[data-fullref]').forEach((elem) => hiddenNames.push(elem.dataset.fullref!));
+			}
+			if (hiddenNames.length === 0) continue;
+			hidden.forEach((elem) => elem.classList.add('refHidden'));
+			plan.list.classList.add('overflowing');
+			const chip = document.createElement('span');
+			chip.className = 'refOverflow';
+			chip.setAttribute('role', 'button');
+			chip.textContent = '+' + hiddenNames.length;
+			chip.title = hiddenNames.join('\n');
+			chip.setAttribute('aria-label', 'Show details with ' + hiddenNames.length + ' more references: ' + hiddenNames.join(', '));
+			plan.list.appendChild(chip);
+		}
+	}
+
 	private makeTableResizable() {
 		let colHeadersElem = document.getElementById('tableColHeaders')!, cols = <HTMLCollectionOf<HTMLElement>>document.getElementsByClassName('tableColHeader');
 		let columnWidths: GG.ColumnWidth[], mouseX = -1, col = -1, colIndex = -1;
@@ -1904,6 +1965,7 @@ class GitGraphityView {
 				mouseX = -1;
 				eventOverlay.remove();
 				this.saveColumnWidths(columnWidths);
+				this.fitRefLabels();
 			}
 		};
 
@@ -2060,6 +2122,14 @@ class GitGraphityView {
 	/* Observers */
 
 	private observeWindowSizeChanges() {
+		// Reference labels depend on the table width, which changes with both the panel and the window.
+		let fitFrame = 0, tableWidth = -1;
+		new ResizeObserver(() => {
+			if (this.tableElem.clientWidth === tableWidth) return;
+			tableWidth = this.tableElem.clientWidth;
+			cancelAnimationFrame(fitFrame);
+			fitFrame = requestAnimationFrame(() => this.fitRefLabels());
+		}).observe(this.tableElem);
 		let windowWidth = window.outerWidth, windowHeight = window.outerHeight;
 		window.addEventListener('resize', () => {
 			if (windowWidth === window.outerWidth && windowHeight === window.outerHeight) {
@@ -2347,6 +2417,15 @@ class GitGraphityView {
 				e.stopPropagation();
 				if (contextMenu.isOpen()) {
 					contextMenu.close();
+				}
+
+			} else if ((eventElem = eventTarget.closest('.refOverflow')) !== null) {
+				// The "+N" reference chip only opens the commit details; it never closes them or starts a comparison.
+				e.stopPropagation();
+				const commitElem = <HTMLElement>eventElem.closest('.commit')!;
+				const commit = this.getCommitOfElem(commitElem);
+				if (commit !== null && (this.expandedCommit === null || this.expandedCommit.commitHash !== commit.hash || this.expandedCommit.compareWithHash !== null)) {
+					this.loadCommitDetails(commitElem);
 				}
 
 			} else if ((eventElem = eventTarget.closest('.commit')) !== null) {
@@ -2694,6 +2773,7 @@ class GitGraphityView {
 					html += '<span class="cdvSummaryTop' + (expandedCommit.avatar !== null ? ' withAvatar' : '') + '"><span class="cdvSummaryTopRow"><span class="cdvSummaryKeyValues">'
 						+ '<b>Commit: </b>' + escapeHtml(commitDetails.hash) + '<br>'
 						+ '<b>Parents: </b>' + parents + '<br>'
+						+ generateCommitRefsHtml(this.commits[this.commitLookup[commitDetails.hash]])
 						+ '<b>Author: </b>' + escapeHtml(commitDetails.author) + (commitDetails.authorEmail !== '' ? ' &lt;<a class="' + CLASS_EXTERNAL_URL + '" href="mailto:' + escapeHtml(commitDetails.authorEmail) + '" tabindex="-1">' + escapeHtml(commitDetails.authorEmail) + '</a>&gt;' : '') + '<br>'
 						+ (commitDetails.authorDate !== commitDetails.committerDate ? '<b>Author Date: </b>' + formatLongDate(commitDetails.authorDate) + '<br>' : '')
 						+ '<b>Committer: </b>' + escapeHtml(commitDetails.committer) + (commitDetails.committerEmail !== '' ? ' &lt;<a class="' + CLASS_EXTERNAL_URL + '" href="mailto:' + escapeHtml(commitDetails.committerEmail) + '" tabindex="-1">' + escapeHtml(commitDetails.committerEmail) + '</a>&gt;' : '') + (commitDetails.signature !== null ? generateSignatureHtml(commitDetails.signature) : '') + '<br>'
@@ -3309,6 +3389,7 @@ class GitGraphityView {
 
 /* Main */
 
+const REF_LABEL_GAP = 5; // Matches the right margin of .gitRef
 const contextMenu = new ContextMenu(), dialog = new Dialog(), eventOverlay = new EventOverlay();
 let loaded = false;
 
@@ -4102,4 +4183,35 @@ function generateSignatureHtml(signature: GG.GitSignature) {
 function closeDialogAndContextMenu() {
 	if (dialog.isOpen()) dialog.close();
 	if (contextMenu.isOpen()) contextMenu.close();
+}
+
+/**
+ * Wrap reference labels in a list that yields space to the commit message and reports any labels it cannot show.
+ * @param labelsHtml The HTML of the reference labels.
+ * @returns The HTML of the list, or an empty string when there are no labels.
+ */
+function refList(labelsHtml: string) {
+	return labelsHtml !== '' ? '<span class="refList">' + labelsHtml + '</span>' : '';
+}
+
+/**
+ * Generate a date cell that switches to a compact date when the table is narrow.
+ * @param date The formatted date.
+ * @returns The HTML of the table cell.
+ */
+function dateCell(date: { title: string, formatted: string, compact: string }) {
+	return '<td class="dateCol text" title="' + date.title + '">' + (date.compact !== date.formatted
+		? '<span class="dateFull">' + date.formatted + '</span><span class="dateCompact">' + date.compact + '</span>'
+		: date.formatted) + '</td>';
+}
+
+/**
+ * Generate the lines of the commit details that name every reference pointing at the commit.
+ * @param commit The commit, if it is loaded in the graph.
+ * @returns The HTML of the lines.
+ */
+function generateCommitRefsHtml(commit: GG.GitCommit | undefined) {
+	if (typeof commit === 'undefined') return '';
+	const line = (label: string, names: ReadonlyArray<string>) => names.length > 0 ? '<b>' + label + ': </b><span class="cdvRefNames">' + names.map(escapeHtml).join(', ') + '</span><br>' : '';
+	return line('Branches', commit.heads) + line('Remote Branches', commit.remotes.map((remote) => remote.name)) + line('Tags', commit.tags.map((tag) => tag.name));
 }
