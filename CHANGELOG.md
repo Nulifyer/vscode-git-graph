@@ -1,5 +1,13 @@
 # Change Log
 
+## 1.32.6 - 2026-11-13
+
+- Keep the commit message readable when many branches, remote branches, or tags point at one commit. References that do not fit collapse into a "+N" chip that opens the commit details.
+- List every branch, remote branch, and tag of a commit in its details.
+- Shorten long reference and branch-picker names from the middle, so names that differ only at the end stay distinguishable.
+- Raise the contrast of muted commits to at least 4.5:1 in the bundled themes.
+- Show compact dates in narrow views, and leave the author and hash blank for uncommitted changes.
+
 ## 1.32.5 - 2026-10-13
 
 - Present Git Graphity with product-focused features, installation instructions, and a short getting-started guide.
