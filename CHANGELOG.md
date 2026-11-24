@@ -1,5 +1,9 @@
 # Change Log
 
+## 1.33.1 - 2026-11-24
+
+- Make the expanded commit details easier to tell apart from the commit list. The panel now sits on a darker background with visible edges in every theme, including themes whose widget background matches the editor, and its left edge continues through the open commit's row.
+
 ## 1.33.0 - 2026-11-24
 
 - Draw tagged commits that no branch contains, such as CI build tags on pull request merge commits, as markers on their own row instead of separate graph lanes. Tags that are the only thing keeping other commits visible keep their lane.
