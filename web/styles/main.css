@@ -2,6 +2,17 @@
 
 :root{
 	--git-graphity-border:var(--vscode-panel-border, var(--vscode-widget-border, var(--vscode-contrastBorder, transparent)));
+	/* The details panel sits darker than the list so it reads as recessed without lowering text contrast. Theme widget
+	   and focus colours are not used: some themes set them equal to the editor background or transparent. */
+	--git-graphity-cdv-background:color-mix(in srgb, black 28%, var(--vscode-editor-background));
+	--git-graphity-cdv-edge:color-mix(in srgb, var(--vscode-foreground) 22%, var(--vscode-editor-background));
+}
+body.vscode-light{
+	--git-graphity-cdv-background:color-mix(in srgb, black 4%, var(--vscode-editor-background));
+}
+:is(body.vscode-high-contrast, body.vscode-high-contrast-light){
+	--git-graphity-cdv-background:var(--vscode-editor-background);
+	--git-graphity-cdv-edge:var(--vscode-contrastBorder, var(--vscode-foreground));
 }
 
 /* Body */
@@ -375,7 +386,8 @@ code{
 	vertical-align:top;
 }
 #cdv.inline td{
-	background-color:var(--vscode-editorWidget-background, var(--vscode-editor-background));
+	background-color:var(--git-graphity-cdv-background);
+	box-shadow:inset 0 1px 0 var(--git-graphity-cdv-edge), inset 0 6px 6px -6px var(--vscode-widget-shadow, transparent);
 	position:relative;
 	font-size:13px;
 	line-height:18px;
@@ -387,7 +399,7 @@ code{
 	left:0;
 	right:0;
 	bottom:0;
-	background-color:var(--vscode-editorWidget-background, var(--vscode-editor-background));
+	background-color:var(--git-graphity-cdv-background);
 	font-size:13px;
 	line-height:18px;
 	white-space:normal;
@@ -593,7 +605,11 @@ code{
 	bottom:2px;
 }
 #cdv.inline #cdvContent{
-	border-left:1px solid var(--git-graphity-border);
+	border-left:2px solid var(--git-graphity-cdv-edge);
+}
+/* Continue the panel's left edge up through the open commit's description so the row and panel read as one unit */
+#commitTable tr.commit.commitDetailsOpen > td:nth-child(2){
+	box-shadow:inset 2px 0 0 var(--git-graphity-cdv-edge);
 }
 #cdv.inline #cdvDivider{
 	top:0;
@@ -601,7 +617,7 @@ code{
 }
 #cdv.inline .cdvHeightResize{
 	bottom:0;
-	border-bottom:2px solid var(--git-graphity-border);
+	border-bottom:2px solid var(--git-graphity-cdv-edge);
 }
 
 #cdv.docked #cdvContent, #cdv.docked #cdvControls{
@@ -614,7 +630,7 @@ code{
 }
 #cdv.docked .cdvHeightResize{
 	top:0;
-	border-top:2px solid var(--git-graphity-border);
+	border-top:2px solid var(--git-graphity-cdv-edge);
 }
 
 
