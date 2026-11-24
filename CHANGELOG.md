@@ -1,5 +1,11 @@
 # Change Log
 
+## 1.33.0 - 2026-11-24
+
+- Draw tagged commits that no branch contains, such as CI build tags on pull request merge commits, as markers on their own row instead of separate graph lanes. Tags that are the only thing keeping other commits visible keep their lane.
+- Hover or focus a marker row to highlight the commits it was made from and draw temporary dashed links to them.
+- Control this with `git-graphity.repository.showTagOnlyCommitsAsMarkers` (on by default) or per repository in Repository Settings.
+
 ## 1.32.6 - 2026-11-13
 
 - Keep the commit message readable when many branches, remote branches, or tags point at one commit. References that do not fit collapse into a "+N" chip that opens the commit details.
