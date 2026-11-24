@@ -1,4 +1,6 @@
 const CLASS_GRAPH_VERTEX_ACTIVE = 'graphVertexActive';
+const CLASS_TAG_MARKER_HOVER = 'hover';
+const CLASS_TAG_MARKER_PARENT = 'tagMarkerParent';
 const NULL_VERTEX_ID = -1;
 
 
@@ -181,6 +183,7 @@ class Vertex {
 	private onBranch: Branch | null = null;
 	private isCommitted: boolean = true;
 	private isCurrent: boolean = false;
+	private marker: boolean = false;
 	private nextX: number = 0;
 	private connections: UnavailablePoint[] = [];
 
@@ -217,7 +220,7 @@ class Vertex {
 	}
 
 	public getNextParent(): Vertex | null {
-		if (this.nextParent < this.parents.length) return this.parents[this.nextParent];
+		if (!this.marker && this.nextParent < this.parents.length) return this.parents[this.nextParent];
 		return null;
 	}
 
@@ -299,11 +302,38 @@ class Vertex {
 		this.isCurrent = true;
 	}
 
+	/** Draw this commit as a lane-free marker. Parents stay recorded for navigation, but no lines are routed to them. */
+	public setMarker() {
+		this.marker = true;
+	}
+
+	public isMarker() {
+		return this.marker;
+	}
+
 
 	/* Rendering */
 
 	public draw(svg: SVGElement, config: GG.GraphConfig, expandOffset: boolean, overListener: (event: MouseEvent) => void, outListener: (event: MouseEvent) => void) {
 		if (this.onBranch === null) return;
+
+		if (this.marker) {
+			const x = this.x * config.grid.x + config.grid.offsetX, y = this.id * config.grid.y + config.grid.offsetY + (expandOffset ? config.grid.expandY : 0), r = 4.5;
+			const diamond = document.createElementNS(SVG_NAMESPACE, 'path');
+			diamond.dataset.id = this.id.toString();
+			diamond.setAttribute('class', 'tagMarker');
+			diamond.setAttribute('d', 'M' + x + ',' + (y - r) + 'L' + (x + r) + ',' + y + 'L' + x + ',' + (y + r) + 'L' + (x - r) + ',' + y + 'Z');
+			svg.appendChild(diamond);
+			// The diamond is small, so a transparent square covering the lane cell receives the pointer
+			const hit = document.createElementNS(SVG_NAMESPACE, 'path'), h = Math.min(config.grid.x, config.grid.y) / 2;
+			hit.dataset.id = this.id.toString();
+			hit.setAttribute('class', 'tagMarkerHit');
+			hit.setAttribute('d', 'M' + (x - h) + ',' + (y - h) + 'h' + 2 * h + 'v' + 2 * h + 'h' + -2 * h + 'Z');
+			hit.addEventListener('mouseover', overListener);
+			hit.addEventListener('mouseout', outListener);
+			svg.appendChild(hit);
+			return;
+		}
 
 		const colour = this.isCommitted ? config.colours[this.onBranch.getColour() % config.colours.length] : 'var(--vscode-descriptionForeground, var(--vscode-foreground))';
 		const cx = (this.x * config.grid.x + config.grid.offsetX).toString();
@@ -366,7 +396,9 @@ class Graph {
 	private widthCache: number | null = null;
 	private pinnedLanes = new Map<number, number>();
 	private pinnedCount = 0;
+	private readonly markerBranch = new Branch(0); // Shared placeholder for marker vertices; never drawn or allocated a colour
 	private tooltipId: number = -1;
+	private markerHover: { id: number; parents: number[]; links: SVGGElement | null } | null = null;
 	private tooltipElem: HTMLElement | null = null;
 	private tooltipTimeout: ReturnType<typeof setTimeout> | null = null;
 	private tooltipVertex: HTMLElement | null = null;
@@ -400,13 +432,14 @@ class Graph {
 
 	/* Graph Operations */
 
-	public loadCommits(commits: ReadonlyArray<GG.GitCommit>, commitHead: string | null, commitLookup: { [hash: string]: number }, onlyFollowFirstParent: boolean, pinnedBranches: readonly string[] = []) {
+	public loadCommits(commits: ReadonlyArray<GG.GitCommit>, commitHead: string | null, commitLookup: { [hash: string]: number }, onlyFollowFirstParent: boolean, pinnedBranches: readonly string[] = [], tagMarkers = false) {
 		const pinned = pinnedHistoryLanes(commits, pinnedBranches);
 		this.pinnedLanes = pinned.lanes; this.pinnedCount = pinned.count;
 		this.commits = commits;
 		this.commitHead = commitHead;
 		this.commitLookup = commitLookup;
 		this.onlyFollowFirstParent = onlyFollowFirstParent;
+		this.markerHover = null;
 		this.vertices = [];
 		this.branches = [];
 		this.availableColours = Array(this.pinnedCount).fill(0);
@@ -417,6 +450,9 @@ class Graph {
 		let i: number, j: number;
 		for (i = 0; i < commits.length; i++) {
 			this.vertices.push(new Vertex(i, commits[i].stash !== null, this.pinnedCount));
+		}
+		if (tagMarkers) {
+			for (const index of tagMarkerCommits(commits, commitHead)) this.vertices[index].setMarker();
 		}
 		for (i = 0; i < commits.length; i++) {
 			for (j = 0; j < commits[i].parents.length; j++) {
@@ -476,6 +512,12 @@ class Graph {
 		if (this.group !== null) this.svg.removeChild(this.group);
 		this.svg.appendChild(group);
 		this.group = group;
+		if (this.markerHover !== null) {
+			// The marker and parent rows were replaced, so draw the hover state again
+			const hovered = this.markerHover.id;
+			this.markerHover = null;
+			this.setMarkerHover(hovered);
+		}
 		this.setDimensions(contentWidth, this.getHeight(expandedCommit));
 		this.applyMaxWidth(contentWidth);
 		const y = this.config.grid.offsetY - this.config.grid.y / 2 + Math.max(0, first) * this.config.grid.y + (this.expandedCommitIndex >= 0 && first > this.expandedCommitIndex ? this.config.grid.expandY : 0);
@@ -511,6 +553,10 @@ class Graph {
 			colours[i] = this.vertices[i].getColour() % this.config.colours.length;
 		}
 		return colours;
+	}
+
+	public getMarkers() {
+		return this.vertices.map((vertex) => vertex.isMarker());
 	}
 
 	public getWidthsAtVertices() {
@@ -577,6 +623,11 @@ class Graph {
 		const muted = [];
 		for (let i = 0; i < this.commits.length; i++) {
 			muted[i] = false;
+		}
+
+		// Markers are secondary to the branch history
+		for (let i = 0; i < this.commits.length; i++) {
+			if (this.vertices[i].isMarker()) muted[i] = true;
 		}
 
 		// Mute any merge commits if the Extension Setting is enabled
@@ -735,6 +786,13 @@ class Graph {
 		let vertex = this.vertices[i], parentVertex = this.vertices[i].getNextParent(), curVertex;
 		let lastPoint = vertex.isNotOnBranch() ? this.preferredPoint(vertex) : vertex.getPoint(), curPoint;
 
+		if (vertex.isMarker()) {
+			// Markers occupy the first free column of their own row only
+			vertex.addToBranch(this.markerBranch, lastPoint.x);
+			vertex.registerUnavailablePoint(lastPoint.x, vertex, this.markerBranch);
+			return;
+		}
+
 		if (parentVertex !== null && parentVertex.id !== NULL_VERTEX_ID && vertex.isMerge() && !vertex.isNotOnBranch() && !parentVertex.isNotOnBranch()) {
 			// Branch is a merge between two vertices already on branches
 			let foundPointToParent = false, parentBranch = parentVertex.getBranch()!;
@@ -760,7 +818,7 @@ class Graph {
 			let branch = new Branch(this.getAvailableColour(startAt));
 			vertex.addToBranch(branch, lastPoint.x);
 			vertex.registerUnavailablePoint(lastPoint.x, vertex, branch);
-			for (i = startAt + 1; i < this.vertices.length; i++) {
+			for (i = startAt + 1; parentVertex !== null && i < this.vertices.length; i++) { // A vertex without parents ends its branch at its own row
 				curVertex = this.vertices[i];
 				curPoint = parentVertex === curVertex ? !parentVertex.isNotOnBranch() ? curVertex.getPoint() : this.preferredPoint(curVertex) : curVertex.getNextPoint();
 				branch.addLine(lastPoint, curPoint, vertex.getIsCommitted(), lastPoint.x < curPoint.x);
@@ -808,6 +866,52 @@ class Graph {
 	}
 
 
+	/* Marker Hover */
+
+	/**
+	 * Point out the commits a marker was made from while its row is hovered, since a marker has no lines to them.
+	 * @param id The index of the hovered commit, or NULL when no marker row is hovered.
+	 */
+	public setMarkerHover(id: number | null) {
+		const commitElems = getCommitElems();
+		if (this.markerHover !== null) {
+			for (const parentId of this.markerHover.parents) findCommitElemWithId(commitElems, parentId)?.classList.remove(CLASS_TAG_MARKER_PARENT);
+			this.svg.querySelector('path.tagMarker[data-id="' + this.markerHover.id + '"]')?.classList.remove(CLASS_TAG_MARKER_HOVER);
+			this.markerHover.links?.remove();
+			this.markerHover = null;
+		}
+		if (id === null || id >= this.vertices.length || !this.vertices[id].isMarker()) return;
+		const parents = this.vertices[id].getParents().map((parent) => parent.id).filter((parentId) => parentId !== NULL_VERTEX_ID);
+		for (const parentId of parents) findCommitElemWithId(commitElems, parentId)?.classList.add(CLASS_TAG_MARKER_PARENT);
+		const marker = this.svg.querySelector('path.tagMarker[data-id="' + id + '"]');
+		marker?.classList.add(CLASS_TAG_MARKER_HOVER);
+
+		// Draw temporary dashed links from the marker to its parents, beneath the marker
+		let links: SVGGElement | null = null;
+		if (marker !== null && marker.parentNode !== null) {
+			const grid = this.config.grid, d = grid.y * 0.8;
+			const pixel = (vertex: Vertex) => {
+				const point = vertex.getPoint();
+				return { x: point.x * grid.x + grid.offsetX, y: point.y * grid.y + grid.offsetY + (this.expandedCommitIndex > -1 && point.y > this.expandedCommitIndex ? grid.expandY : 0) };
+			};
+			const from = pixel(this.vertices[id]);
+			links = document.createElementNS(SVG_NAMESPACE, 'g');
+			links.setAttribute('class', 'tagMarkerLinks');
+			for (const parentId of parents) {
+				const to = pixel(this.vertices[parentId]), route = 'M' + from.x + ',' + from.y + 'C' + from.x + ',' + (from.y + d) + ' ' + to.x + ',' + (to.y - d) + ' ' + to.x + ',' + to.y;
+				for (const className of ['shadow', 'link']) {
+					const path = document.createElementNS(SVG_NAMESPACE, 'path');
+					path.setAttribute('class', className);
+					path.setAttribute('d', route);
+					links.appendChild(path);
+				}
+			}
+			marker.parentNode.insertBefore(links, marker);
+		}
+		this.markerHover = { id, parents, links };
+	}
+
+
 	/* Vertex Info */
 
 	private vertexOver(event: MouseEvent) {
@@ -819,11 +923,12 @@ class Graph {
 		this.tooltipId = id;
 		const commitElem = findCommitElemWithId(getCommitElems(), id);
 		if (commitElem !== null) commitElem.classList.add(CLASS_GRAPH_VERTEX_ACTIVE);
+		if (id < this.vertices.length && this.vertices[id].isMarker()) this.setMarkerHover(id); // The graph is outside the table, so the row hover has just ended
 
 		if (id < this.commits.length && this.commits[id].hash !== UNCOMMITTED) { // Only show tooltip for commits (not the uncommitted changes)
 			this.tooltipTimeout = setTimeout(() => {
 				this.tooltipTimeout = null;
-				let vertexScreenY = vertexElem.getBoundingClientRect().top + 4; // Get center of the circle
+				const vertexRect = vertexElem.getBoundingClientRect(), vertexScreenY = vertexRect.top + vertexRect.height / 2; // Get center of the vertex
 				if (vertexScreenY >= 5 && vertexScreenY <= this.viewElem.clientHeight - 5) {
 					// Vertex is completely visible on the screen (not partially off)
 					this.tooltipVertex = vertexElem;
@@ -837,6 +942,7 @@ class Graph {
 	private vertexOut(event: MouseEvent) {
 		if (event.target === null) return;
 		this.closeTooltip();
+		if (this.markerHover !== null) this.setMarkerHover(null);
 	}
 
 	private showTooltip(id: number, vertexScreenY: number) {
@@ -861,7 +967,7 @@ class Graph {
 		};
 
 		let html = '<div class="graphTooltipTitle">Commit ' + abbrevCommit(this.commits[id].hash) + '</div>';
-		if (this.commitHead !== null && typeof this.commitLookup[this.commitHead] === 'number') {
+		if (this.commitHead !== null && typeof this.commitLookup[this.commitHead] === 'number' && !this.vertices[id].isMarker()) {
 			html += '<div class="graphTooltipSection">This commit is ' + (childrenIncludesHead ? '' : '<b><i>not</i></b> ') + 'included in <span class="graphTooltipRef">HEAD</span></div>';
 		}
 		if (heads.length > 0 || remotes.length > 0) {
@@ -881,8 +987,12 @@ class Graph {
 			let htmlRefs = stashes.map((stash) => '<span class="graphTooltipRef">' + escapeHtml(stash) + '</span>');
 			html += '<div class="graphTooltipSection">Stashes: ' + getLimitedRefs(htmlRefs) + '</div>';
 		}
+		if (this.vertices[id].isMarker()) {
+			const parents = this.commits[id].parents.map((hash) => '<span class="graphTooltipRef">' + abbrevCommit(hash) + '</span>').join('');
+			html += '<div class="graphTooltipSection">' + (this.commits[id].parents.length > 1 ? 'Tagged merge commit' : 'Tagged commit') + ', not on any branch.' + (parents !== '' ? ' Parents: ' + parents : '') + '</div>';
+		}
 
-		const point = this.vertices[id].getPoint(), color = 'var(--git-graphity-color' + (this.vertices[id].getColour() % this.config.colours.length) + ')';
+		const point = this.vertices[id].getPoint(), color = this.vertices[id].isMarker() ? 'var(--vscode-descriptionForeground, var(--vscode-foreground))' : 'var(--git-graphity-color' + (this.vertices[id].getColour() % this.config.colours.length) + ')';
 		const anchor = document.createElement('div'), pointer = document.createElement('div'), content = document.createElement('div'), shadow = document.createElement('div');
 		const pixel: Pixel = {
 			x: point.x * this.config.grid.x + this.config.grid.offsetX,

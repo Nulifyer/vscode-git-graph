@@ -158,6 +158,7 @@ class SettingsWidget {
 				'</table>' +
 				'<label id="settingsShowStashes"><input type="checkbox" id="settingsShowStashesCheckbox" tabindex="-1"><span class="customCheckbox"></span>Show Stashes</label><br/>' +
 				'<label id="settingsShowTags"><input type="checkbox" id="settingsShowTagsCheckbox" tabindex="-1"><span class="customCheckbox"></span>Show Tags</label><br/>' +
+				'<label id="settingsShowTagOnlyCommitsAsMarkers"><input type="checkbox" id="settingsShowTagOnlyCommitsAsMarkersCheckbox" tabindex="-1"><span class="customCheckbox"></span>Show off-branch tagged commits as markers</label><span class="settingsWidgetInfo" title="Tagged commits that no branch contains, such as CI build tags, are drawn as a diamond on their own row instead of their own graph line. Hover the row to see the commits it was made from.">' + SVG_ICONS.info + '</span><br/>' +
 				'<label id="settingsIncludeCommitsMentionedByReflogs"><input type="checkbox" id="settingsIncludeCommitsMentionedByReflogsCheckbox" tabindex="-1"><span class="customCheckbox"></span>Include commits only mentioned by reflogs</label><span class="settingsWidgetInfo" title="Only applies when showing all branches.">' + SVG_ICONS.info + '</span><br/>' +
 				'<label id="settingsOnlyFollowFirstParent"><input type="checkbox" id="settingsOnlyFollowFirstParentCheckbox" tabindex="-1"><span class="customCheckbox"></span>Only follow the first parent of commits</label><span class="settingsWidgetInfo" title="Instead of following all parents of commits, only follow the first parent when discovering the commits to load.">' + SVG_ICONS.info + '</span>' +
 				'</div>';
@@ -315,6 +316,16 @@ class SettingsWidget {
 				const elem = <HTMLInputElement | null>document.getElementById('settingsShowTagsCheckbox');
 				if (elem === null) return;
 				this.view.saveRepoStateValue(this.currentRepo, 'showTags', elem.checked ? GG.BooleanOverride.Enabled : GG.BooleanOverride.Disabled);
+				this.view.refresh(true);
+			});
+
+			const showTagOnlyCommitsAsMarkersElem = <HTMLInputElement>document.getElementById('settingsShowTagOnlyCommitsAsMarkersCheckbox');
+			showTagOnlyCommitsAsMarkersElem.checked = getShowTagOnlyCommitsAsMarkers(this.repo.showTagOnlyCommitsAsMarkers);
+			showTagOnlyCommitsAsMarkersElem.addEventListener('change', () => {
+				if (this.currentRepo === null) return;
+				const elem = <HTMLInputElement | null>document.getElementById('settingsShowTagOnlyCommitsAsMarkersCheckbox');
+				if (elem === null) return;
+				this.view.saveRepoStateValue(this.currentRepo, 'showTagOnlyCommitsAsMarkers', elem.checked ? GG.BooleanOverride.Enabled : GG.BooleanOverride.Disabled);
 				this.view.refresh(true);
 			});
 

@@ -717,6 +717,7 @@ export class GitGraphityView extends Disposable {
 				repoDropdownOrder: config.repoDropdownOrder,
 				showRemoteBranches: config.showRemoteBranches,
 				showStashes: config.showStashes,
+				showTagOnlyCommitsAsMarkers: config.showTagOnlyCommitsAsMarkers,
 				showTags: config.showTags
 			},
 			lastActiveRepo: this.extensionState.getLastActiveRepo(),

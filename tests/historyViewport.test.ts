@@ -47,3 +47,61 @@ it('pins named branch ancestry while ignoring missing branch names', () => {
 	expect(pinned.count).toBe(1);
 	expect([...pinned.lanes.values()]).toEqual(Array(10).fill(0));
 });
+
+import { tagMarkerCommits } from '../src/utils/historyViewport';
+describe('Tag marker commits', () => {
+	const hash = (name: string) => name.padEnd(40, '0');
+	const commit = (name: string, parents: string[], refs: { heads?: string[]; tags?: string[]; remotes?: string[] } = {}): GitCommit => ({ hash: hash(name), parents: parents.map(hash), author: 'Fixture', email: 'fixture@example.test', date: 0, message: name, heads: refs.heads || [], tags: (refs.tags || []).map((tag) => ({ name: tag, annotated: false })), remotes: (refs.remotes || []).map((remote) => ({ name: remote, remote: 'origin' })), stash: null });
+	const indexes = (commits: GitCommit[], head: string | null = null) => [...tagMarkerCommits(commits, head)].sort((a, b) => a - b);
+
+	it('marks pull request build merges whose parents stay on branches', () => {
+		// b1 and b2 are build tags on merge previews of develop (d*) into main (m*)
+		const commits = [
+			commit('d2', ['d1'], { heads: ['develop'] }),
+			commit('b2', ['m1', 'd1'], { tags: ['481050'] }),
+			commit('m2', ['m1'], { heads: ['main'] }),
+			commit('b1', ['m1', 'd0'], { tags: ['440601'] }),
+			commit('d1', ['d0']),
+			commit('m1', ['d0']),
+			commit('d0', [])
+		];
+		expect(indexes(commits)).toEqual([1, 3]);
+	});
+
+	it('keeps a lane when the tag is the only thing holding history', () => {
+		// A deleted release branch: r2 is tagged, r1 has no other child
+		const commits = [
+			commit('m1', ['m0'], { heads: ['main'] }),
+			commit('r2', ['r1'], { tags: ['v1.0'] }),
+			commit('r1', ['m0']),
+			commit('m0', [])
+		];
+		expect(indexes(commits)).toEqual([]);
+	});
+
+	it('keeps a lane when two builds are the only children of a commit', () => {
+		const commits = [
+			commit('m1', ['m0'], { heads: ['main'] }),
+			commit('b2', ['m0', 'f1'], { tags: ['2'] }),
+			commit('b1', ['m0', 'f1'], { tags: ['1'] }),
+			commit('f1', ['m0']),
+			commit('m0', [])
+		];
+		expect(indexes(commits)).toEqual([]);
+	});
+
+	it('ignores commits with other references, children, or HEAD', () => {
+		const commits = [
+			commit('a', ['m0'], { tags: ['t1'], heads: ['feature'] }),
+			commit('b', ['m0'], { tags: ['t2'], remotes: ['origin/b'] }),
+			commit('c', ['m0'], { tags: ['t3'] }),
+			commit('d', ['m0'], { tags: ['t4'] }),
+			commit('m0', [], { heads: ['main'] })
+		];
+		expect(indexes(commits, hash('c'))).toEqual([3]);
+	});
+
+	it('treats parents that are not loaded as anchored', () => {
+		expect(indexes([commit('main', ['x'], { heads: ['main'] }), commit('build', ['y'], { tags: ['9'] })])).toEqual([1]);
+	});
+});

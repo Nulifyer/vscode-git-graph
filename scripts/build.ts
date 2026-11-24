@@ -43,7 +43,7 @@ async function buildWeb() {
 	const entrypoint = path.join(root, '.build', 'webview-entry.js');
 	const result = await Bun.build({
 		entrypoints: [entrypoint],
-		files: { [entrypoint]: 'import {historyViewport, foldHistory, pinnedHistoryLanes} from \'./web/src/utils/historyViewport.js\';\nimport {HistorySearch, searchText} from \'./web/src/utils/historySearch.js\';\n' + sources.join('\n') },
+		files: { [entrypoint]: 'import {historyViewport, foldHistory, pinnedHistoryLanes, tagMarkerCommits} from \'./web/src/utils/historyViewport.js\';\nimport {HistorySearch, searchText} from \'./web/src/utils/historySearch.js\';\n' + sources.join('\n') },
 		target: 'browser',
 		format: 'iife',
 		minify: !debug,

@@ -6,6 +6,7 @@ declare global {
 	const historyViewport: typeof import('../src/utils/historyViewport').historyViewport;
 	const foldHistory: typeof import('../src/utils/historyViewport').foldHistory;
 	const pinnedHistoryLanes: typeof import('../src/utils/historyViewport').pinnedHistoryLanes;
+	const tagMarkerCommits: typeof import('../src/utils/historyViewport').tagMarkerCommits;
 
 	/* Visual Studio Code API Types */
 

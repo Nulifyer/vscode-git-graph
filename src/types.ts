@@ -217,6 +217,7 @@ export interface GitRepoState {
 	showRemoteBranches: boolean;
 	showRemoteBranchesV2: BooleanOverride;
 	showStashes: BooleanOverride;
+	showTagOnlyCommitsAsMarkers: BooleanOverride;
 	showTags: BooleanOverride;
 	workspaceFolderIndex: number | null;
 }
@@ -261,6 +262,7 @@ export interface GitGraphityViewConfig {
 	readonly repoDropdownOrder: RepoDropdownOrder;
 	readonly showRemoteBranches: boolean;
 	readonly showStashes: boolean;
+	readonly showTagOnlyCommitsAsMarkers: boolean;
 	readonly showTags: boolean;
 }
 

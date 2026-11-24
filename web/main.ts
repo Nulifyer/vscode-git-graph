@@ -43,7 +43,7 @@ class GitGraphityView {
 	private viewportLast = -1;
 	private viewportFrame = 0;
 	private paintingViewport = false;
-	private tableCache: { commits: GG.GitCommit[]; colours: number[]; widths: number[]; muted: boolean[] } | null = null;
+	private tableCache: { commits: GG.GitCommit[]; colours: number[]; widths: number[]; muted: boolean[]; markers: boolean[] } | null = null;
 
 	private getViewport() {
 		const header = document.getElementById('tableColHeaders')?.clientHeight ?? 31;
@@ -584,7 +584,7 @@ class GitGraphityView {
 		this.commits = presentation.commits; this.collapsedGroups = presentation.groups; this.commitLookup = {};
 		for (let i = 0; i < this.commits.length; i++) this.commitLookup[this.commits[i].hash] = i;
 		if (this.expandedCommit) this.expandedCommit.index = this.commitLookup[this.expandedCommit.commitHash];
-		this.graph.loadCommits(this.commits, this.commitHead, this.commitLookup, this.onlyFollowFirstParent, this.layout.pinnedBranches);
+		this.graph.loadCommits(this.commits, this.commitHead, this.commitLookup, this.onlyFollowFirstParent, this.layout.pinnedBranches, this.currentRepo !== null && typeof this.gitRepos[this.currentRepo] !== 'undefined' && getShowTagOnlyCommitsAsMarkers(this.gitRepos[this.currentRepo].showTagOnlyCommitsAsMarkers));
 		this.tableCache = null; this.render();
 	}
 
@@ -917,9 +917,9 @@ class GitGraphityView {
 		const colVisibility = this.getColumnVisibility();
 		const currentHash = this.commits.length > 0 && this.commits[0].hash === UNCOMMITTED ? UNCOMMITTED : this.commitHead;
 		if (this.tableCache === null || this.tableCache.commits !== this.commits) {
-			this.tableCache = { commits: this.commits, colours: this.graph.getVertexColours(), widths: this.graph.getWidthsAtVertices(), muted: this.graph.getMutedCommits(currentHash) };
+			this.tableCache = { commits: this.commits, colours: this.graph.getVertexColours(), widths: this.graph.getWidthsAtVertices(), muted: this.graph.getMutedCommits(currentHash), markers: this.graph.getMarkers() };
 		}
-		const vertexColours = this.tableCache.colours, widthsAtVertices = this.tableCache.widths, mutedCommits = this.tableCache.muted;
+		const vertexColours = this.tableCache.colours, widthsAtVertices = this.tableCache.widths, mutedCommits = this.tableCache.muted, markers = this.tableCache.markers;
 		const viewport = this.getViewport();
 		this.viewportFirst = viewport.first;
 		this.viewportLast = viewport.last;
@@ -982,7 +982,7 @@ class GitGraphityView {
 				) + '."></span>'
 				: '';
 
-			html += '<tr class="commit' + (commit.hash === currentHash ? ' current' : '') + (mutedCommits[i] ? ' mute' : '') + (this.highlightedPath.size ? this.highlightedPath.has(commit.hash) ? ' pathHighlight' : ' pathMuted' : '') + '"' + (commit.hash !== UNCOMMITTED ? '' : ' id="uncommittedChanges"') + ' tabindex="0" aria-rowindex="' + (i + 2) + '" aria-label="' + escapeHtml(commit.message + ', ' + [...commit.heads, ...commit.tags.map(tag => tag.name), ...commit.remotes.map(remote => remote.name)].join(', ') + (commit.hash !== UNCOMMITTED ? ', ' + commit.author : '') + ', ' + date.formatted + (commit.hash !== UNCOMMITTED ? ', ' + abbrevCommit(commit.hash) : '')) + '" data-id="' + i + '" data-color="' + vertexColours[i] + '">' +
+			html += '<tr class="commit' + (commit.hash === currentHash ? ' current' : '') + (mutedCommits[i] ? ' mute' : '') + (markers[i] ? ' tagMarker' : '') + (this.highlightedPath.size ? this.highlightedPath.has(commit.hash) ? ' pathHighlight' : ' pathMuted' : '') + '"' + (commit.hash !== UNCOMMITTED ? '' : ' id="uncommittedChanges"') + ' tabindex="0" aria-rowindex="' + (i + 2) + '" aria-label="' + escapeHtml(commit.message + ', ' + [...commit.heads, ...commit.tags.map(tag => tag.name), ...commit.remotes.map(remote => remote.name)].join(', ') + (commit.hash !== UNCOMMITTED ? ', ' + commit.author : '') + ', ' + date.formatted + (commit.hash !== UNCOMMITTED ? ', ' + abbrevCommit(commit.hash) : '') + (markers[i] ? ', not on any branch' : '')) + '" data-id="' + i + '" data-color="' + vertexColours[i] + '">' +
 				(this.config.referenceLabels.branchLabelsAlignedToGraph ? '<td>' + (refBranches !== '' ? '<span style="margin-left:' + (widthsAtVertices[i] - 4) + 'px"' + refBranches.substring(5) : '') + '</td><td><span class="description">' + commitDot : '<td></td><td><span class="description">' + commitDot + (this.config.referenceLabels.tagLabelsOnRight ? refList(refBranches) : refList(refBranches + refTags))) + (this.config.referenceLabels.tagLabelsOnRight ? message + refList(refTags) : this.config.referenceLabels.branchLabelsAlignedToGraph ? refList(refTags) + message : message) + '</span></td>' +
 				(colVisibility.date ? dateCell(date) : '') +
 				(colVisibility.author ? commit.hash === UNCOMMITTED ? '<td class="authorCol text"></td>' : '<td class="authorCol text" title="' + escapeHtml(commit.author + ' <' + commit.email + '>') + '">' + (this.config.fetchAvatars ? '<span class="avatar" data-email="' + escapeHtml(commit.email) + '">' + (typeof this.avatars[commit.email] === 'string' ? '<img class="avatarImg" src="' + this.avatars[commit.email] + '">' : '') + '</span>' : '') + escapeHtml(commit.author) + '</td>' : '') +
@@ -2402,6 +2402,18 @@ class GitGraphityView {
 				this.ensureCommitElement(this.commits[next].hash)?.focus({ preventScroll: true });
 			}
 		});
+
+		// A marker row points out the commits its marker was made from
+		this.tableElem.addEventListener('mouseover', (e: MouseEvent) => {
+			const row = e.target instanceof Element ? e.target.closest<HTMLElement>('tr.commit.tagMarker') : null;
+			this.graph.setMarkerHover(row !== null ? parseInt(row.dataset.id!) : null);
+		});
+		this.tableElem.addEventListener('mouseleave', () => this.graph.setMarkerHover(null));
+		this.tableElem.addEventListener('focusin', (e: FocusEvent) => {
+			const row = e.target instanceof Element ? e.target.closest<HTMLElement>('tr.commit.tagMarker') : null;
+			this.graph.setMarkerHover(row !== null ? parseInt(row.dataset.id!) : null);
+		});
+		this.tableElem.addEventListener('focusout', () => this.graph.setMarkerHover(null));
 
 		// Register Click Event Handler
 		this.tableElem.addEventListener('click', (e: MouseEvent) => {
@@ -3995,6 +4007,12 @@ function getShowStashes(repoValue: GG.BooleanOverride) {
 function getShowTags(repoValue: GG.BooleanOverride) {
 	return repoValue === GG.BooleanOverride.Default
 		? initialState.config.showTags
+		: repoValue === GG.BooleanOverride.Enabled;
+}
+
+function getShowTagOnlyCommitsAsMarkers(repoValue: GG.BooleanOverride) {
+	return repoValue === GG.BooleanOverride.Default
+		? initialState.config.showTagOnlyCommitsAsMarkers
 		: repoValue === GG.BooleanOverride.Enabled;
 }
 

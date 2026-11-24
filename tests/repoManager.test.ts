@@ -1240,6 +1240,7 @@ describe('RepoManager', () => {
 				showRemoteBranches: true,
 				showRemoteBranchesV2: BooleanOverride.Default,
 				showStashes: BooleanOverride.Default,
+				showTagOnlyCommitsAsMarkers: BooleanOverride.Default,
 				showTags: BooleanOverride.Default,
 				workspaceFolderIndex: 0
 			};
@@ -1909,6 +1910,7 @@ describe('RepoManager', () => {
 						showRemoteBranches: true,
 						showRemoteBranchesV2: BooleanOverride.Default,
 						showStashes: BooleanOverride.Default,
+						showTagOnlyCommitsAsMarkers: BooleanOverride.Default,
 						showTags: BooleanOverride.Default,
 						workspaceFolderIndex: 0
 					}
@@ -2001,6 +2003,11 @@ describe('RepoManager', () => {
 				it('Should import BooleanOverride.Disabled correctly', testApplyField('showStashes', BooleanOverride.Disabled, 'showStashes', false));
 			});
 
+			describe('showTagOnlyCommitsAsMarkers', () => {
+				it('Should import BooleanOverride.Enabled correctly', testApplyField('showTagOnlyCommitsAsMarkers', BooleanOverride.Enabled, 'showTagOnlyCommitsAsMarkers', true));
+				it('Should import BooleanOverride.Disabled correctly', testApplyField('showTagOnlyCommitsAsMarkers', BooleanOverride.Disabled, 'showTagOnlyCommitsAsMarkers', false));
+			});
+
 			describe('showTags', () => {
 				it('Should import BooleanOverride.Enabled correctly', testApplyField('showTags', BooleanOverride.Enabled, 'showTags', true));
 				it('Should import BooleanOverride.Disabled correctly', testApplyField('showTags', BooleanOverride.Disabled, 'showTags', false));
@@ -2062,6 +2069,7 @@ describe('RepoManager', () => {
 			it('Should display a validation error when "pullRequestConfig" is invalid (no destBranch)', testValidationOfField('pullRequestConfig', { provider: ExternalRepoConfig.PullRequestProvider.Bitbucket, custom: null, hostRootUrl: 'a', sourceRemote: 'b', sourceOwner: 'c', sourceRepo: 'd', destRemote: 'e', destOwner: 'f', destRepo: 'g', destProjectId: 'h' }));
 			it('Should display a validation error when "showRemoteBranches" is invalid', testValidationOfField('showRemoteBranches', 'invalid'));
 			it('Should display a validation error when "showStashes" is invalid', testValidationOfField('showStashes', 'invalid'));
+			it('Should display a validation error when "showTagOnlyCommitsAsMarkers" is invalid', testValidationOfField('showTagOnlyCommitsAsMarkers', 'invalid'));
 			it('Should display a validation error when "showTags" is invalid', testValidationOfField('showTags', 'invalid'));
 		});
 
@@ -2262,6 +2270,7 @@ describe('RepoManager', () => {
 					showRemoteBranches: true,
 					showRemoteBranchesV2: BooleanOverride.Default,
 					showStashes: BooleanOverride.Default,
+					showTagOnlyCommitsAsMarkers: BooleanOverride.Default,
 					showTags: BooleanOverride.Default,
 					workspaceFolderIndex: 0
 				}
@@ -2340,6 +2349,7 @@ describe('RepoManager', () => {
 					showRemoteBranches: true,
 					showRemoteBranchesV2: BooleanOverride.Default,
 					showStashes: BooleanOverride.Default,
+					showTagOnlyCommitsAsMarkers: BooleanOverride.Default,
 					showTags: BooleanOverride.Default,
 					workspaceFolderIndex: 0
 				}
@@ -2485,6 +2495,11 @@ describe('RepoManager', () => {
 		describe('showStashes', () => {
 			it('Should export BooleanOverride.Enabled correctly', testExportField('showStashes', BooleanOverride.Enabled, 'showStashes', true));
 			it('Should export BooleanOverride.Disabled correctly', testExportField('showStashes', BooleanOverride.Disabled, 'showStashes', false));
+		});
+
+		describe('showTagOnlyCommitsAsMarkers', () => {
+			it('Should export BooleanOverride.Enabled correctly', testExportField('showTagOnlyCommitsAsMarkers', BooleanOverride.Enabled, 'showTagOnlyCommitsAsMarkers', true));
+			it('Should export BooleanOverride.Disabled correctly', testExportField('showTagOnlyCommitsAsMarkers', BooleanOverride.Disabled, 'showTagOnlyCommitsAsMarkers', false));
 		});
 
 		describe('showTags', () => {

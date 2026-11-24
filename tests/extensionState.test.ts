@@ -74,6 +74,7 @@ describe('ExtensionState', () => {
 				showRemoteBranches: true,
 				showRemoteBranchesV2: BooleanOverride.Enabled,
 				showStashes: BooleanOverride.Enabled,
+				showTagOnlyCommitsAsMarkers: BooleanOverride.Default,
 				showTags: BooleanOverride.Enabled,
 				workspaceFolderIndex: 0
 			};
@@ -122,6 +123,7 @@ describe('ExtensionState', () => {
 					showRemoteBranches: true,
 					showRemoteBranchesV2: BooleanOverride.Default,
 					showStashes: BooleanOverride.Default,
+					showTagOnlyCommitsAsMarkers: BooleanOverride.Default,
 					showTags: BooleanOverride.Default,
 					workspaceFolderIndex: null
 				}
@@ -160,6 +162,7 @@ describe('ExtensionState', () => {
 					showRemoteBranches: true,
 					showRemoteBranchesV2: BooleanOverride.Default,
 					showStashes: BooleanOverride.Default,
+					showTagOnlyCommitsAsMarkers: BooleanOverride.Default,
 					showTags: BooleanOverride.Default,
 					workspaceFolderIndex: null
 				}
@@ -198,6 +201,7 @@ describe('ExtensionState', () => {
 					showRemoteBranches: false,
 					showRemoteBranchesV2: BooleanOverride.Disabled,
 					showStashes: BooleanOverride.Default,
+					showTagOnlyCommitsAsMarkers: BooleanOverride.Default,
 					showTags: BooleanOverride.Default,
 					workspaceFolderIndex: null
 				}
@@ -236,6 +240,7 @@ describe('ExtensionState', () => {
 					showRemoteBranches: false,
 					showRemoteBranchesV2: BooleanOverride.Default,
 					showStashes: BooleanOverride.Default,
+					showTagOnlyCommitsAsMarkers: BooleanOverride.Default,
 					showTags: BooleanOverride.Default,
 					workspaceFolderIndex: null
 				}
@@ -274,6 +279,7 @@ describe('ExtensionState', () => {
 					showRemoteBranches: true,
 					showRemoteBranchesV2: BooleanOverride.Enabled,
 					showStashes: BooleanOverride.Default,
+					showTagOnlyCommitsAsMarkers: BooleanOverride.Default,
 					showTags: BooleanOverride.Default,
 					workspaceFolderIndex: null
 				}
@@ -315,6 +321,7 @@ describe('ExtensionState', () => {
 					showRemoteBranches: true,
 					showRemoteBranchesV2: BooleanOverride.Default,
 					showStashes: BooleanOverride.Default,
+					showTagOnlyCommitsAsMarkers: BooleanOverride.Default,
 					showTags: BooleanOverride.Default,
 					workspaceFolderIndex: null
 				},
@@ -336,6 +343,7 @@ describe('ExtensionState', () => {
 					showRemoteBranches: false,
 					showRemoteBranchesV2: BooleanOverride.Disabled,
 					showStashes: BooleanOverride.Default,
+					showTagOnlyCommitsAsMarkers: BooleanOverride.Default,
 					showTags: BooleanOverride.Default,
 					workspaceFolderIndex: null
 				}

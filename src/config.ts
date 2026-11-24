@@ -488,6 +488,13 @@ class Config {
 	}
 
 	/**
+	 * Get the value of the `git-graphity.repository.showTagOnlyCommitsAsMarkers` Extension Setting.
+	 */
+	get showTagOnlyCommitsAsMarkers() {
+		return !!this.config.get('repository.showTagOnlyCommitsAsMarkers', true);
+	}
+
+	/**
 	 * Get the value of the `git-graphity.repository.showTags` Extension Setting.
 	 */
 	get showTags() {

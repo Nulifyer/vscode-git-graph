@@ -1239,3 +1239,60 @@ label > input[type=radio]:checked ~ .customRadio:after{
 #findFuzzy[aria-pressed=true] { background: var(--vscode-inputOption-activeBackground); color: var(--vscode-inputOption-activeForeground); border-color: var(--vscode-inputOption-activeBorder); }
 
 @media (max-width: 800px) { .conflictFileRow { flex-wrap: wrap; } .conflictFileRow > span { flex: 0 0 100%; white-space: normal; overflow-wrap: anywhere; } }
+
+/* Tag-only commits drawn as markers: neutral, hollow, and without a lane colour */
+#commitGraph path.tagMarker{
+	pointer-events:none;
+	fill:var(--vscode-editor-background);
+	stroke:color-mix(in srgb, var(--vscode-foreground) 55%, var(--vscode-editor-background));
+	stroke-width:1.5;
+}
+#commitGraph path.tagMarker.hover{
+	stroke:var(--vscode-foreground);
+	stroke-width:2;
+}
+#commitGraph g.tagMarkerLinks path{
+	fill:none;
+	pointer-events:none;
+}
+#commitGraph g.tagMarkerLinks path.shadow{
+	stroke:var(--vscode-editor-background);
+	stroke-width:4;
+	stroke-opacity:0.75;
+}
+#commitGraph g.tagMarkerLinks path.link{
+	stroke:var(--vscode-foreground);
+	stroke-width:1.5;
+	stroke-dasharray:3 3;
+}
+#commitGraph path.tagMarkerHit{
+	pointer-events:all;
+	fill:transparent;
+	stroke:none;
+}
+#commitTable tr.commit.tagMarker{
+	--git-graphity-color:color-mix(in srgb, var(--vscode-foreground) 55%, var(--vscode-editor-background));
+}
+/* Marker tags are outline-only like the diamond, so they read as secondary to badge-filled branch and tag labels.
+   Text uses the muted row mix on the editor background (at least 4.5:1 in the bundled themes) instead of the badge pair. */
+#commitTable tr.commit.tagMarker .gitRef.tag{
+	background-color:transparent;
+	color:color-mix(in srgb, var(--vscode-foreground) 72%, var(--vscode-editor-background));
+	border-color:color-mix(in srgb, var(--vscode-foreground) 55%, var(--vscode-editor-background));
+}
+#commitTable tr.commit.tagMarker .gitRef.tag > svg{
+	background-color:transparent;
+	fill:currentColor;
+	box-shadow:inset -1px 0 0 var(--git-graphity-border);
+}
+/* Rows a hovered marker was made from: weaker than the hovered row itself, with a leading edge */
+#commitTable tr.commit.tagMarkerParent{
+	background-color:color-mix(in srgb, var(--vscode-list-hoverBackground, transparent) 55%, transparent);
+}
+#commitTable tr.commit.tagMarkerParent > td:first-child{
+	box-shadow:inset 2px 0 0 var(--vscode-foreground);
+}
+:is(body.vscode-high-contrast, body.vscode-high-contrast-light) #commitTable tr.commit.tagMarkerParent{
+	outline:1px dashed var(--vscode-contrastActiveBorder, var(--vscode-foreground));
+	outline-offset:-1px;
+}

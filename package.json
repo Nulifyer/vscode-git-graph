@@ -1067,6 +1067,11 @@
 					"default": true,
 					"description": "Show Stashes in Git Graphity by default. This can be overridden per repository in the Git Graphity View's Repository Settings Widget."
 				},
+				"git-graphity.repository.showTagOnlyCommitsAsMarkers": {
+					"type": "boolean",
+					"default": true,
+					"markdownDescription": "Draw tagged commits that no branch contains (for example CI build tags on pull request merge commits) as markers on their own row, without a graph line to their parents. A tagged commit keeps its line when other history depends on it. Only applies when `#git-graphity.repository.showCommitsOnlyReferencedByTags#` is enabled. This can be overridden per repository in the Git Graphity View's Repository Settings Widget."
+				},
 				"git-graphity.repository.showTags": {
 					"type": "boolean",
 					"default": true,

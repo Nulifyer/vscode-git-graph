@@ -2818,6 +2818,8 @@ describe('Config', () => {
 
 	describe('showStashes', testBooleanExtensionSetting('showStashes', 'repository.showStashes', true));
 
+	describe('showTagOnlyCommitsAsMarkers', testBooleanExtensionSetting('showTagOnlyCommitsAsMarkers', 'repository.showTagOnlyCommitsAsMarkers', true));
+
 	describe('showTags', testRenamedBooleanExtensionSetting('showTags', 'repository.showTags', 'showTags', true));
 
 	describe('showUncommittedChanges', testRenamedBooleanExtensionSetting('showUncommittedChanges', 'repository.showUncommittedChanges', 'showUncommittedChanges', true));

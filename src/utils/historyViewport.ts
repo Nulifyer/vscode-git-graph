@@ -51,3 +51,33 @@ export function pinnedHistoryLanes(commits: readonly GitCommit[], names: readonl
 	}
 	return { lanes, count };
 }
+
+/**
+ * Find leaf commits that only tags keep in the history, such as CI build tags on pull request merge previews.
+ * A commit qualifies when it has a tag and no other reference, no loaded children, and every loaded parent stays
+ * anchored by a reference or another child. Such commits can be drawn as markers without a graph lane, and no
+ * history is left unconnected when their parent lines are omitted.
+ */
+export function tagMarkerCommits(commits: readonly GitCommit[], head: string | null) {
+	const lookup = new Map(commits.map((commit, index) => [commit.hash, index]));
+	const children = new Map<number, number[]>();
+	commits.forEach((commit, index) => {
+		for (const parent of commit.parents) {
+			const parentIndex = lookup.get(parent);
+			if (parentIndex === undefined) continue;
+			const list = children.get(parentIndex);
+			if (list) list.push(index); else children.set(parentIndex, [index]);
+		}
+	});
+	const referenced = (commit: GitCommit) => commit.heads.length > 0 || commit.remotes.length > 0 || commit.stash !== null || commit.hash === head || commit.hash === '*';
+	const candidates = new Set<number>();
+	commits.forEach((commit, index) => {
+		if (commit.tags.length > 0 && !referenced(commit) && !children.has(index)) candidates.add(index);
+	});
+	const anchored = (index: number) => referenced(commits[index]) || commits[index].tags.length > 0 || (children.get(index) || []).some((child) => !candidates.has(child));
+	const markers = new Set<number>();
+	for (const index of candidates) {
+		if (commits[index].parents.every((parent) => { const parentIndex = lookup.get(parent); return parentIndex === undefined || anchored(parentIndex); })) markers.add(index);
+	}
+	return markers;
+}
